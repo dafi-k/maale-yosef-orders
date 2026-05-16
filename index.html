@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>קטלוג ריהוט רענון צימרים | מועצה אזורית מעלה יוסף</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #F5F0E8;
+  --bg-card: #FFFFFF;
+  --primary: #6B4E2A;
+  --primary-hover: #7D5C35;
+  --primary-light: #C49A6C;
+  --secondary-btn: #E8DFD0;
+  --green: #3D7048;
+  --danger: #C0392B;
+  --gold: #D4A843;
+  --text: #2C2416;
+  --text-muted: #7A6E5F;
+  --border: #DDD3C0;
+  --shadow: 0 2px 12px rgba(107,78,42,0.10);
+  --shadow-md: 0 4px 24px rgba(107,78,42,0.15);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: 'Segoe UI', Arial, 'Noto Sans Hebrew', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  direction: rtl;
+}
+
+/* === SCREENS === */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* === SCREEN 1 – IDENTIFICATION === */
+.id-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, #F5F0E8 0%, #EDE3D0 100%);
+}
+.id-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 40px 40px 36px;
+  max-width: 520px;
+  width: 100%;
+}
+.logo-area {
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--border);
+}
+.logo-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.5px;
+}
+.logo-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.logo-area .region-badge {
+  display: inline-block;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+.id-card h2 {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.form-group input {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  direction: rtl;
+  transition: border-color 0.2s;
+  color: var(--text);
+  background: #fff;
+  width: 100%;
+  box-sizing: border-box;
+}
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(196,154,108,0.15);
+}
+.form-group input.invalid { border-color: var(--danger); }
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-secondary {
+  background: var(--secondary-btn);
+  color: var(--primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-secondary:hover { background: #DDD3C0; }
+.btn-full { width: 100%; justify-content: center; margin-top: 8px; }
+
+/* === SCREEN 2 – INSTRUCTIONS === */
+.instructions-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px 80px;
+  background: linear-gradient(135deg, #F5F0E8 0%, #EDE3D0 100%);
+}
+.instructions-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 40px;
+  max-width: 680px;
+  width: 100%;
+}
+.instructions-card h2 {
+  font-size: 1.4rem;
+  color: var(--primary);
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+}
+.instructions-body {
+  line-height: 1.8;
+  color: var(--text);
+  font-size: 0.97rem;
+}
+.instructions-body p { margin-bottom: 12px; }
+.instructions-body strong { color: var(--primary); }
+.instructions-body ul, .instructions-body ol {
+  padding-right: 24px;
+  margin: 10px 0 16px;
+}
+.instructions-body li { margin-bottom: 8px; }
+.budget-hero {
+  background: linear-gradient(135deg, var(--primary) 0%, #8B6840 100%);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 20px 24px;
+  text-align: center;
+  margin: 24px 0;
+}
+.budget-hero .budget-amount {
+  font-size: 2rem;
+  font-weight: 800;
+  display: block;
+}
+.budget-hero .budget-label {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+.btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+/* === SCREEN 3 – CATALOG === */
+#screen-3 { display: none; }
+#screen-3.active { display: flex; flex-direction: column; min-height: 100vh; }
+.catalog-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.catalog-header .cabin-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.catalog-header .budget-pill {
+  background: rgba(255,255,255,0.18);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.85rem;
+}
+.sticky-catalog-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.total-bar {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.total-bar .t-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+.total-bar .t-item .t-label { color: var(--text-muted); }
+.total-bar .t-item .t-value {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--primary);
+}
+.total-bar .t-item.over-budget .t-value { color: var(--danger); }
+.total-bar .t-item.over-budget .t-label::after { content: ' ⚠️'; }
+.total-progress {
+  flex: 1;
+  min-width: 120px;
+  height: 6px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.total-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.total-progress-fill.over { background: linear-gradient(90deg, var(--gold), var(--danger)); }
+
+/* Tabs */
+.tab-nav {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 12px;
+  gap: 2px;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  position: relative;
+}
+.tab-btn:hover { color: var(--primary); }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab-btn .tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* Product Grid */
+.tab-panel { display: none; padding: 20px 16px; }
+.tab-panel.active { display: block; }
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Product Card */
+.product-card {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.product-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.product-card.in-cart { border-color: var(--primary-light); }
+.product-img-wrap {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--bg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+.product-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.gift-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--gold);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.product-info {
+  padding: 12px 14px 4px;
+  flex: 1;
+}
+.product-codes {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.product-id-badge {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+.product-sku {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.product-desc {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.product-color {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.product-price {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+.product-price.gift-price { color: var(--gold); }
+
+/* Quantity Controls */
+.product-actions {
+  padding: 10px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.qty-btn {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  transition: all 0.15s;
+}
+.qty-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.qty-btn:disabled:hover { background: #fff; color: var(--primary); border-color: var(--border); }
+.qty-display {
+  min-width: 36px;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.gift-checkbox-btn {
+  width: 100%;
+  padding: 9px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-size: 0.88rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+.gift-checkbox-btn.selected {
+  background: var(--gold);
+  color: #fff;
+  border-color: var(--gold);
+}
+.gift-checkbox-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.variant-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg);
+  border: 1px solid var(--primary-light);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 0.76rem;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.variant-tag:hover { background: #EDE3D0; }
+
+/* Catalog Action Bar */
+.catalog-action-bar {
+  background: #fff;
+  border-top: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+/* === SCREEN 4 – SUMMARY === */
+#screen-4 { display: none; }
+#screen-4.active { display: block; min-height: 100vh; }
+.summary-wrap {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+.summary-wrap h2 {
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+.summary-identity-box {
+  background: #fff;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.summary-identity-box .si-item { font-size: 0.88rem; }
+.summary-identity-box .si-label { color: var(--text-muted); font-size: 0.78rem; }
+.summary-identity-box .si-value { font-weight: 600; margin-top: 2px; }
+.summary-table-wrap { overflow-x: auto; }
+table.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+table.summary-table th {
+  background: var(--primary);
+  color: #fff;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: right;
+}
+table.summary-table td {
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+table.summary-table tr:last-child td { border-bottom: none; }
+table.summary-table tr:hover td { background: #FAFAF7; }
+.summary-total-row td {
+  font-weight: 700;
+  font-size: 0.95rem;
+  background: var(--bg) !important;
+}
+.summary-balance-row td {
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.no-items-notice {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+.summary-footer-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.btn-lg { padding: 14px 36px; font-size: 1.05rem; }
+.success-box {
+  text-align: center;
+  padding: 48px 20px;
+  background: #fff;
+  border-radius: var(--radius);
+  border: 2px solid var(--green);
+  max-width: 500px;
+  margin: 60px auto;
+}
+.success-box .success-icon { font-size: 3rem; margin-bottom: 16px; }
+.success-box h3 { color: var(--green); font-size: 1.3rem; margin-bottom: 8px; }
+.success-box p { color: var(--text-muted); font-size: 0.95rem; }
+
+/* === MODAL === */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,22,0.65);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 48px rgba(0,0,0,0.25);
+  padding: 28px 28px 24px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  line-height: 1;
+  padding: 4px;
+}
+.modal-close:hover { color: var(--text); }
+.modal-product-preview {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-product-preview img {
+  width: 90px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.modal-product-preview .mpd {
+  flex: 1;
+}
+.modal-product-preview .mpd-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+}
+.modal-product-preview .mpd-id {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.modal-product-preview .mpd-price {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-top: 6px;
+}
+.modal-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.variants-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.variant-option {
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+  text-align: center;
+}
+.variant-option:hover { border-color: var(--primary-light); transform: scale(1.02); }
+.variant-option.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(107,78,42,0.2); }
+.variant-option img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+.variant-option .vname {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 4px;
+  color: var(--text);
+  background: #fff;
+}
+.variant-option.selected .vname { background: var(--primary); color: #fff; }
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .id-card { padding: 28px 20px 24px; }
+  .form-row { grid-template-columns: 1fr; }
+  .instructions-card { padding: 24px 20px; }
+  .products-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .total-bar { padding: 8px 16px; gap: 12px; }
+  .catalog-action-bar { padding: 12px 16px; }
+  .btn-row { flex-direction: column-reverse; }
+  .summary-footer-btns { flex-direction: column-reverse; }
+  .variants-grid { grid-template-columns: repeat(2, 1fr); }
+  .modal-card { padding: 20px 16px; }
+  .modal-product-preview { flex-direction: column; }
+  .modal-product-preview img { width: 100%; height: 160px; }
+
+  /* Summary table → cards on mobile */
+  .summary-table-wrap { overflow-x: visible; }
+  table.summary-table { display: block; box-shadow: none; background: transparent; }
+  table.summary-table thead { display: none; }
+  table.summary-table tbody { display: block; }
+  table.summary-table tr {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  table.summary-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--bg);
+    padding: 5px 0;
+    font-size: 0.85rem;
+    gap: 8px;
+  }
+  table.summary-table td:last-child { border-bottom: none; }
+  table.summary-table td[data-label]::before {
+    content: attr(data-label) ":";
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    min-width: 75px;
+    flex-shrink: 0;
+  }
+  .summary-total-row { background: var(--bg) !important; }
+  .summary-total-row td[colspan="5"],
+  .summary-balance-row td[colspan="5"] { display: none; }
+  .summary-total-row td,
+  .summary-balance-row td { font-size: 0.9rem; padding: 6px 0; }
+  .summary-identity-box { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 400px) {
+  .products-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ====== SCREEN 1: IDENTIFICATION ====== -->
+<div id="screen-1" class="screen active">
+  <div class="id-wrap">
+    <div class="id-card">
+      <div class="logo-area">
+        <div class="logo-title">רענון צימרים 2025</div>
+        <div class="logo-subtitle">מועצה אזורית מעלה יוסף — גליל מערבי</div>
+        <div class="region-badge">קטלוג בחירת פריטי ריהוט</div>
+      </div>
+      <h2>פרטי הצימר</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f-cabin">שם הצימר *</label>
+          <input type="text" id="f-cabin" placeholder="שם הצימר שלכם">
+        </div>
+        <div class="form-group">
+          <label for="f-contact">שם איש קשר *</label>
+          <input type="text" id="f-contact" placeholder="שם פרטי ומשפחה">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="f-phone">מס׳ נייד *</label>
+        <input type="tel" id="f-phone" placeholder="05X-XXXXXXX">
+      </div>
+      <div class="form-group">
+        <label for="f-email">כתובת אי-מייל *</label>
+        <input type="email" id="f-email" placeholder="your@email.com">
+      </div>
+      <button class="btn-primary btn-full" onclick="goToInstructions()">המשך להוראות ←</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN 2: INSTRUCTIONS ====== -->
+<div id="screen-2" class="screen">
+  <div class="instructions-wrap">
+    <div class="instructions-card">
+      <h2>הוראות הגשת ההזמנה</h2>
+      <div class="budget-hero">
+        <span class="budget-amount">₪9,500</span>
+        <span class="budget-label">תקציב לרשותכם לרענון הצימר</span>
+      </div>
+      <div class="instructions-body" id="instructions-text">
+        <!-- ════════════════════════════════════════════
+             מקום להוראות — יעודכן על ידי המזמינה
+             ════════════════════════════════════════════ -->
+        <p>ברוכים הבאים לקטלוג רענון הצימרים של מועצה אזורית מעלה יוסף.</p>
+        <p>כל צימר זכאי לתקציב של <strong>₪9,500</strong> לבחירת פריטי ריהוט מהקטלוג הבא.</p>
+        <ol>
+          <li>עברו על הקטגוריות בטאבים ובחרו את הפריטים הרצויים.</li>
+          <li>הגדירו כמות לכל פריט באמצעות כפתורי + / −.</li>
+          <li>פריטים מסוימים (שולחנות קפה ומיטות) דורשים בחירת צבע/דגם — יפתח חלון בחירה בעת הוספה.</li>
+          <li>עקבו אחר הסכום בסרגל העליון — סה"כ ההזמנה ויתרת התקציב.</li>
+          <li>בסיום, לחצו על <strong>"לסיכום ההזמנה"</strong> ובדקו את הבחירות שלכם.</li>
+          <li>לחצו <strong>"שלח הזמנה"</strong> — תקבלו סיכום במייל ויורד קובץ Excel.</li>
+        </ol>
+        <p><strong>שימו לב:</strong> אין חובה לנצל את מלוא התקציב. ניתן להזמין כמה פריטים שתרצו, כל עוד סכום ההזמנה אינו עולה על ₪9,500. <br>אם סכום ההזמנה עולה על ₪9,500, ההפרש ייחשב כיתרה לתשלום עצמי.</p>
+        <p>בסוף הקטלוג, בקטגוריית <strong>מלונאי</strong>, תמצאו 2 חבילות בונוס <strong>במתנה</strong> — ניתן לבחור עד 2 חבילות.</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="showScreen(1)">← חזור</button>
+        <button class="btn-primary" onclick="showScreen(3)">המשך לקטלוג ←</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SCREEN 3: CATALOG ====== -->
+<div id="screen-3" class="screen">
+  <div class="catalog-header">
+    <div class="cabin-name" id="display-cabin">קטלוג ריהוט</div>
+    <div class="budget-pill">תקציב: ₪9,500</div>
+  </div>
+  <div class="sticky-catalog-top">
+    <div class="total-bar" id="total-bar">
+      <div class="t-item">
+        <span class="t-label">סה"כ הוזמן:</span>
+        <span class="t-value" id="t-ordered">₪0</span>
+      </div>
+      <div class="total-progress"><div class="total-progress-fill" id="t-progress" style="width:0%"></div></div>
+      <div class="t-item" id="t-balance-item">
+        <span class="t-label" id="t-balance-label">יתרת תקציב:</span>
+        <span class="t-value" id="t-balance">₪9,500</span>
+      </div>
+    </div>
+    <div class="tab-nav" id="tab-nav"></div>
+  </div>
+  <div id="tab-panels" style="flex:1;"></div>
+  <div class="catalog-action-bar">
+    <button class="btn-secondary" onclick="showScreen(2)">← חזור להוראות</button>
+    <button class="btn-primary btn-lg" onclick="goToSummary()">לסיכום ההזמנה ←</button>
+  </div>
+</div>
+
+<!-- ====== SCREEN 4: SUMMARY ====== -->
+<div id="screen-4" class="screen">
+  <div class="summary-wrap">
+    <h2>סיכום ההזמנה</h2>
+    <div id="summary-identity" class="summary-identity-box"></div>
+    <div class="summary-table-wrap" id="summary-table-wrap"></div>
+    <div id="summary-footer"></div>
+    <div id="submit-area"></div>
+  </div>
+</div>
+
+<!-- ====== VARIANT MODAL ====== -->
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════
+const BUDGET = 9500;
+const CC_EMAILS = ['lior@contrast-il.com', 'marketing@contrast-il.com'];
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2jw3rsaAYauyLZVZoAlt6Z_lsFcCjh2KLvSAyf6lMf2N_R8YGqyCTgCm-WUkDRFbc/exec';
+
+const PALETTE_VARIANTS = [
+  { id:'P1', label:'מריאנה',  img:'P1_MARIANA .jpg' },
+  { id:'P2', label:'נקסוס',   img:'P2_NEXUS.jpg' },
+  { id:'P3', label:'פיניש',   img:'P3_FINISH.jpg' },
+  { id:'P4', label:'לבן',     img:'P4_WHITE.jpg' },
+  { id:'P5', label:'שחור',    img:'P5_BLACK.jpg' },
+  { id:'P6', label:'אנטיק',   img:'P6_ANTIC.jpg' }
+];
+const FABRIC_VARIANTS = [
+  { id:'james', label:"ג'יימס", img:'bd_James-90052.jpg' },
+  { id:'henry', label:'הנרי',   img:'bd_Henry-40003.jpg' },
+  { id:'leo',   label:'ליאו',   img:'Bd_LEO-50004.jpg' },
+  { id:'kim',   label:'קים',    img:'bd_kim-20015.jpg' }
+];
+
+// ════════════════════════════════════════════
+// PRODUCT DATA
+// key = unique cart key, id = display code, twoStep: 'palette'|'fabric'|null, isGift: bool
+// ════════════════════════════════════════════
+const PRODUCTS = [
+  // ── כורסאות ──
+  {key:'A1',  id:'A1',  sku:'M06710-C',         cat:'כורסאות',      desc:'כורסא מסתובבת',                 color:'אפור',                         price:2599, img:'A1.JPG'},
+  {key:'A2',  id:'A2',  sku:'SP0356-D',          cat:'כורסאות',      desc:'כורסא',                          color:'אפור',                         price:1699, img:'A2.JPG'},
+  {key:'A3',  id:'A3',  sku:'SP0352-VC',         cat:'כורסאות',      desc:'כורסא',                          color:'אפרפר',                        price:999,  img:'A3.JPG'},
+  {key:'A4',  id:'A4',  sku:'SP0401-C',          cat:'כורסאות',      desc:'כורסא',                          color:'אפור',                         price:2799, img:'A4.JPG'},
+  {key:'A5',  id:'A5',  sku:'SP0401-G',          cat:'כורסאות',      desc:'כורסא',                          color:'ירוק',                         price:2799, img:'A5.JPG'},
+  {key:'A6',  id:'A6',  sku:'IL150-30406',       cat:'כורסאות',      desc:'כורסא',                          color:'מושב שחור / גב עץ',            price:699,  img:'A6.png'},
+  {key:'A7',  id:'A7',  sku:'M06715-G',          cat:'כורסאות',      desc:'כורסא מסתובבת',                 color:'אפור',                         price:799,  img:'A7.JPG'},
+  {key:'A8',  id:'A8',  sku:'M06715-S',          cat:'כורסאות',      desc:'כורסא מסתובבת',                 color:"בז'",                          price:799,  img:'A8.JPG'},
+  {key:'A9',  id:'A9',  sku:'M06715-R',          cat:'כורסאות',      desc:'כורסא מסתובבת',                 color:'ירוק',                         price:799,  img:'A9.JPG'},
+  {key:'A10', id:'A10', sku:'M06715-C',          cat:'כורסאות',      desc:'כורסא מסתובבת',                 color:'לבן',                          price:799,  img:'A10.JPG'},
+  // ── כיסאות ──
+  {key:'C1',  id:'C1',  sku:'SP0317-VMG',        cat:'כיסאות',       desc:'כיסא דמוי עור / גב עץ',         color:'אפור',                         price:799,  img:'C1.jpg'},
+  {key:'C2',  id:'C2',  sku:'SP0317-VML',        cat:'כיסאות',       desc:'כיסא דמוי עור / גב עץ',         color:'אפור כהה',                     price:799,  img:'C2.jpg'},
+  {key:'C3',  id:'C3',  sku:'SP0317-VMS',        cat:'כיסאות',       desc:'כיסא דמוי עור / גב עץ',         color:'שחור',                         price:799,  img:'C3.jpg'},
+  {key:'C4',  id:'C4',  sku:'SP0316-DGF',        cat:'כיסאות',       desc:'כיסא בד',                        color:'אפור',                         price:699,  img:'C4.jpg'},
+  {key:'C5',  id:'C5',  sku:'150-36772-GR',      cat:'כיסאות',       desc:'כיסא בד',                        color:'אפור',                         price:699,  img:'C5.png'},
+  {key:'C6',  id:'C6',  sku:'150-36772-G',       cat:'כיסאות',       desc:'כיסא בד',                        color:'ירוק',                         price:699,  img:'C6.png'},
+  {key:'C7',  id:'C7',  sku:'SP0268-BN',         cat:'כיסאות',       desc:'כיסא בד / עץ',                   color:'מושב בד גב ראטן',              price:499,  img:'C7.jpg'},
+  {key:'C8',  id:'C8',  sku:'15031604',          cat:'כיסאות',       desc:'כיסא דמוי עור',                  color:'אפור בהיר',                    price:699,  img:'c8.PNG'},
+  {key:'C9',  id:'C9',  sku:'15031606',          cat:'כיסאות',       desc:'כיסא דמוי עור',                  color:'שחור',                         price:699,  img:'c9.PNG'},
+  {key:'C10', id:'C10', sku:'15031700',          cat:'כיסאות',       desc:'כיסא דמוי עור',                  color:'בזי',                          price:799,  img:'c10.PNG'},
+  {key:'C11', id:'C11', sku:'15031704',          cat:'כיסאות',       desc:'כיסא דמוי עור',                  color:'אפור בהיר',                    price:799,  img:'c11.PNG'},
+  {key:'C12', id:'C12', sku:'15031707',          cat:'כיסאות',       desc:'כיסא דמוי עור',                  color:'קמל',                          price:799,  img:'c12.PNG'},
+  {key:'C13', id:'C13', sku:'SP0366-BL',         cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'שחור',                         price:399,  img:'C13.jpg'},
+  {key:'C14', id:'C14', sku:'SP0377-T',          cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'סגול / ירוק / לבן',            price:399,  img:'C14.jpg'},
+  {key:'C15', id:'C15', sku:'SP0360',            cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:"בז'",                          price:299,  img:'C15.jpg'},
+  {key:'C16', id:'C16', sku:'SP0366-G',          cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'ירוק',                         price:399,  img:'C16.jpg'},
+  {key:'C17', id:'C17', sku:'SP0369-NO104',      cat:'כיסאות',       desc:'כיסא בד',                        color:'לבן',                          price:359,  img:'C17.jpg'},
+  {key:'C18', id:'C18', sku:'SP0370-BL',         cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'שחור',                         price:399,  img:'C18.jpg'},
+  {key:'C19', id:'C19', sku:'SP0370-O',          cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'חמרה',                         price:399,  img:'C19.jpg'},
+  {key:'C20', id:'C20', sku:'SP0373-O',          cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'חמרה',                         price:399,  img:'C20.jpg'},
+  {key:'C21', id:'C21', sku:'SP0373-IV',         cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'לבן',                          price:399,  img:'C21.jpg'},
+  {key:'C22', id:'C22', sku:'SP0262-Y03',        cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'צהוב',                         price:299,  img:'C22.png'},
+  {key:'C23', id:'C23', sku:'SP0383-WG',         cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:"ב'ג",                          price:399,  img:'C23.jpg'},
+  {key:'C24', id:'C24', sku:'SP0387-G',          cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'ירוק',                         price:399,  img:'C24.jpg'},
+  {key:'C25', id:'C25', sku:'SP0387-B',          cat:'כיסאות',       desc:'כיסא פלסטיק',                   color:'ורוד',                         price:399,  img:'C25.jpg'},
+  // ── כיסאות בר ──
+  {key:'B1',  id:'B1',  sku:'SP0305-GR12',       cat:'כיסאות בר',    desc:'כיסא בר פלסטיק',                color:'אפור',                         price:399,  img:'B1.jpg'},
+  {key:'B2',  id:'B2',  sku:'SP0358-Y03',        cat:'כיסאות בר',    desc:'כיסא בר פלסטיק',                color:'צהוב',                         price:299,  img:'B2.jpg'},
+  {key:'B3',  id:'B3',  sku:'SP0314-GR01',       cat:'כיסאות בר',    desc:'כיסא בר פלסטיק',                color:'לבן',                          price:299,  img:'B3.png'},
+  {key:'B4',  id:'B4',  sku:'SP0315-DGF',        cat:'כיסאות בר',    desc:'כיסא בר בד',                    color:'אפור',                         price:599,  img:'B4.jpg'},
+  {key:'B5',  id:'B5',  sku:'15131300',          cat:'כיסאות בר',    desc:'כיסא בר דמוי עור',              color:'קמל',                          price:699,  img:'b5.jpg'},
+  {key:'B6',  id:'B6',  sku:'15131304',          cat:'כיסאות בר',    desc:'כיסא בר דמוי עור',              color:'אפור',                         price:699,  img:'B6.PNG'},
+  // ── פינת ישיבה ──
+  {key:'S1_SOFA', id:'S1', sku:'SP0411-KF2217-13', cat:'פינת ישיבה',  desc:'סלון דו בד',                   color:'חמרה',                         price:3599, img:'S1.JPG'},
+  {key:'S2_SOFA', id:'S2', sku:'SP0411-KF2217-2',  cat:'פינת ישיבה',  desc:'סלון דו בד',                   color:"בז'",                          price:3599, img:'S2.JPG'},
+  {key:'S3_SOFA', id:'S3', sku:'SP0411-KF2217-6',  cat:'פינת ישיבה',  desc:'סלון דו מושבי בריפוד בד',      color:'אפור',                         price:3599, img:'S3.JPG'},
+  // ── פינת קפה (2-step: base+palette) ──
+  {key:'L1P', id:'L1+P', sku:'15551313',        cat:'פינת קפה',     desc:'שולחן ישיבה — בחירת רגל + פלטה', color:'פלטה 70×70 / קוטר 70 ס"מ',   price:1099, img:'L1.png',   twoStep:'palette'},
+  {key:'L2P', id:'L2+P', sku:'15550510',        cat:'פינת קפה',     desc:'שולחן ישיבה — בחירת רגל + פלטה', color:'פלטה 70×70 / קוטר 70 ס"מ',   price:1099, img:'L2.png',   twoStep:'palette'},
+  {key:'L3P', id:'L3+P', sku:'M06662-BK',       cat:'פינת קפה',     desc:'שולחן ישיבה — בחירת רגל + פלטה', color:'פלטה 70×70 / קוטר 70 ס"מ',   price:1299, img:'L3+P.jpg', twoStep:'palette'},
+  {key:'L4P', id:'L4+P', sku:'M06660-W',        cat:'פינת קפה',     desc:'שולחן ישיבה — בחירת רגל + פלטה', color:'פלטה 70×70 / קוטר 70 ס"מ',   price:1299, img:'L4+P.jpg', twoStep:'palette'},
+  {key:'L5P', id:'L5+P', sku:'M06670-BK',       cat:'פינת קפה',     desc:'שולחן ישיבה — בחירת רגל + פלטה', color:'פלטה 70×70 / קוטר 70 ס"מ',   price:1099, img:'L5+P.jpg', twoStep:'palette'},
+  {key:'L6P', id:'L6+P', sku:'M06668',          cat:'פינת קפה',     desc:'שולחן ישיבה — בחירת רגל + פלטה', color:'פלטה 70×70 / קוטר 70 ס"מ',   price:1099, img:'L6+P.jpg', twoStep:'palette'},
+  {key:'L7P', id:'L7+P', sku:'M06665A',         cat:'פינת קפה',     desc:'שולחן ישיבה — בחירת רגל + פלטה', color:'פלטה 70×70 / קוטר 70 ס"מ',   price:1299, img:'L7+P.jpg', twoStep:'palette'},
+  // ── פינת אוכל (2-step) ──
+  {key:'L8P', id:'L8+P', sku:'רגל 4 פינים',    cat:'פינת אוכל',    desc:'שולחן אוכל — בחירת רגל + פלטה',  color:'פלטה 120×70 ס"מ',             price:1599, img:'L8+P.jpeg', twoStep:'palette'},
+  // ── שינה ──
+  {key:'H1',      id:'H1', sku:'SP0408-KF23339-7', cat:'שינה',       desc:'הדום נפתח למיטה',               color:"בז'",                          price:2299, img:'H1.PNG'},
+  {key:'S1_BED',  id:'S1', sku:'IL0001',           cat:'שינה',       desc:'בסיס מיטה מחולק ללא מזרן 160×190', color:'יש לבחור דגם בד',           price:2400, img:'s1.PNG',  twoStep:'fabric'},
+  {key:'S2_BED',  id:'S2', sku:'IL0002',           cat:'שינה',       desc:'גב מיטה סטנדרט גובה 110 ס"מ',  color:'יש לבחור דגם בד',             price:1500, img:'S2.png',  twoStep:'fabric'},
+  {key:'S3_BED',  id:'S3', sku:'IL0003',           cat:'שינה',       desc:'מזרן מלונאי רוחב 160',           color:'',                            price:2900, img:'S3.png'},
+  // ── שולחנות סלון ──
+  {key:'T1', id:'T1', sku:'M07303',             cat:'שולחנות סלון', desc:'סט שולחנות אלומניום',            color:'',                            price:1599, img:'T1.jpg'},
+  {key:'T2', id:'T2', sku:'M07306',             cat:'שולחנות סלון', desc:'סט שולחנות אלומניום',            color:'',                            price:1599, img:'T2.png'},
+  {key:'T3', id:'T3', sku:'IL0005',             cat:'שולחנות סלון', desc:'שולחן קפסולה — טופ פורמיקה עץ', color:'',                            price:1299, img:'T3.PNG'},
+  {key:'T4', id:'T4', sku:'VILMERS',            cat:'שולחנות סלון', desc:'שולחן זכוכית — רגל ברזל',       color:'',                            price:1999, img:'T4.png'},
+  // ── מזנונים ──
+  {key:'P1_SB', id:'P1', sku:'IL0006', cat:'מזנונים', desc:'מזנון פורמיקה אורך 140 ס"מ',  color:'', price:499,  img:'p1.PNG'},
+  {key:'P2_SB', id:'P2', sku:'IL0007', cat:'מזנונים', desc:'מזנון ראטן אורך 200 ס"מ',     color:'', price:1599, img:'P2.png'},
+  // ── מלונאי ──
+  {key:'M1', id:'M1', sku:'PJ026-FD-2045L', cat:'מלונאי', desc:'כספת 20×37×45 ס"מ',        color:'', price:799, img:'M1.png'},
+  {key:'M2', id:'M2', sku:'IL0004',         cat:'מלונאי', desc:'חבילת בונוס מלונאי — כרית נוי, מגש עץ, 3 ואזות, שטיח כניסה, מראה עגולה, 2 תמונות בד, קומקום מלונאי', color:'', price:0, img:'m2.PNG', isGift:true},
+  {key:'M3', id:'M3', sku:'IL0004',         cat:'מלונאי', desc:'חבילת בונוס מלונאי — כרית נוי, מגש עץ, 3 ואזות, שטיח כניסה, מראה עגולה, 2 תמונות בד, קומקום מלונאי', color:'', price:0, img:'M3.PNG', isGift:true},
+];
+
+// Category display order
+const CAT_ORDER = ['כורסאות','כיסאות','כיסאות בר','פינת ישיבה','פינת קפה','פינת אוכל','שינה','שולחנות סלון','מזנונים','מלונאי'];
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+const cart = {}; // { [key]: { qty, variant } }
+let identity = {};
+let currentModal = null; // product being configured in modal
+let pendingVariant = null; // selected variant in modal (before confirm)
+
+// ════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════
+function fmt(n) {
+  return '₪' + Math.abs(n).toLocaleString('he-IL');
+}
+function imgPath(filename) {
+  return 'pic/' + filename;
+}
+function noImgSvg() {
+  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23F0E8D8'/%3E%3Ctext x='100' y='85' text-anchor='middle' fill='%23C49A6C' font-size='42'%3E🛋%3C/text%3E%3C/svg%3E";
+}
+function getQty(key) { return cart[key] ? cart[key].qty : 0; }
+function getVariant(key) { return cart[key] ? cart[key].variant : null; }
+function getTotal() {
+  return PRODUCTS.reduce((sum, p) => sum + (getQty(p.key) * (p.price || 0)), 0);
+}
+function getGiftTotal() {
+  const giftKeys = PRODUCTS.filter(p => p.isGift).map(p => p.key);
+  return giftKeys.reduce((s, k) => s + getQty(k), 0);
+}
+
+// ════════════════════════════════════════════
+// SCREEN NAVIGATION
+// ════════════════════════════════════════════
+function showScreen(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + n).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goToInstructions() {
+  const cabin   = document.getElementById('f-cabin').value.trim();
+  const contact = document.getElementById('f-contact').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  let valid = true;
+  ['f-cabin','f-contact','f-phone','f-email'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('invalid');
+    if (!el.value.trim()) { el.classList.add('invalid'); valid = false; }
+  });
+  if (!valid) { alert('אנא מלאו את כל השדות המסומנים.'); return; }
+  if (!email.includes('@')) {
+    document.getElementById('f-email').classList.add('invalid');
+    alert('כתובת אי-מייל אינה תקינה.'); return;
+  }
+  identity = { cabin, contact, phone, email };
+  showScreen(2);
+}
+
+function goToSummary() {
+  renderSummary();
+  showScreen(4);
+}
+
+// ════════════════════════════════════════════
+// CATALOG RENDER
+// ════════════════════════════════════════════
+function initCatalog() {
+  document.getElementById('display-cabin').textContent = identity.cabin || 'קטלוג ריהוט';
+  const tabNav = document.getElementById('tab-nav');
+  const tabPanels = document.getElementById('tab-panels');
+  tabNav.innerHTML = '';
+  tabPanels.innerHTML = '';
+
+  const grouped = {};
+  CAT_ORDER.forEach(cat => { grouped[cat] = []; });
+  PRODUCTS.forEach(p => { if (grouped[p.cat]) grouped[p.cat].push(p); });
+
+  CAT_ORDER.forEach((cat, idx) => {
+    const products = grouped[cat];
+    if (!products || products.length === 0) return;
+
+    // Tab button
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (idx === 0 ? ' active' : '');
+    btn.id = 'tab-btn-' + idx;
+    btn.dataset.idx = idx;
+    btn.innerHTML = `<span class="tab-count" id="tab-count-${idx}">0</span>${cat}`;
+    btn.onclick = () => activateTab(idx);
+    tabNav.appendChild(btn);
+
+    // Tab panel
+    const panel = document.createElement('div');
+    panel.className = 'tab-panel' + (idx === 0 ? ' active' : '');
+    panel.id = 'tab-panel-' + idx;
+    const grid = document.createElement('div');
+    grid.className = 'products-grid';
+    products.forEach(p => {
+      grid.appendChild(buildCard(p));
+    });
+    panel.appendChild(grid);
+    tabPanels.appendChild(panel);
+  });
+
+  updateTotalBar();
+  updateTabCounts();
+}
+
+function activateTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const btn = document.getElementById('tab-btn-' + idx);
+  const panel = document.getElementById('tab-panel-' + idx);
+  if (btn) btn.classList.add('active');
+  if (panel) panel.classList.add('active');
+}
+
+function buildCard(p) {
+  const card = document.createElement('div');
+  card.className = 'product-card' + (getQty(p.key) > 0 ? ' in-cart' : '');
+  card.id = 'card-' + p.key;
+
+  const priceDisplay = p.isGift ? '<span class="product-price gift-price">מתנה 🎁</span>' :
+    `<span class="product-price">${fmt(p.price)}</span>`;
+
+  const colorLine = p.color ? `<div class="product-color">${p.color}</div>` : '';
+
+  card.innerHTML = `
+    <div class="product-img-wrap">
+      <img src="${imgPath(p.img)}" alt="${p.desc}" loading="lazy" onerror="this.src='${noImgSvg()}'">
+      ${p.isGift ? '<div class="gift-badge">🎁 מתנה</div>' : ''}
+    </div>
+    <div class="product-info">
+      <div class="product-codes">
+        <span class="product-id-badge">${p.id}</span>
+        <span class="product-sku">${p.sku}</span>
+      </div>
+      <div class="product-desc">${p.desc}</div>
+      ${colorLine}
+      ${priceDisplay}
+    </div>
+    <div class="product-actions" id="actions-${p.key}">
+      ${buildActions(p)}
+    </div>
+  `;
+  return card;
+}
+
+function buildActions(p) {
+  if (p.isGift) {
+    const sel = getQty(p.key) > 0;
+    const disabled = !sel && getGiftTotal() >= 2;
+    return `<button class="gift-checkbox-btn${sel ? ' selected' : ''}"
+      ${disabled ? 'disabled' : ''}
+      onclick="toggleGift('${p.key}')">${sel ? '✓ נבחרה' : '+ בחר חבילה'}</button>`;
+  }
+  const qty = getQty(p.key);
+  const variant = getVariant(p.key);
+  const variantTag = (p.twoStep && variant) ?
+    `<div style="margin-top:4px"><span class="variant-tag" onclick="openModal('${p.key}', true)">✏️ ${variant}</span></div>` : '';
+  return `
+    <div class="qty-controls">
+      <button class="qty-btn" onclick="changeQty('${p.key}',-1)" ${qty === 0 ? 'disabled' : ''}>−</button>
+      <span class="qty-display">${qty}</span>
+      <button class="qty-btn" onclick="handleAdd('${p.key}')">+</button>
+    </div>
+    ${variantTag}
+  `;
+}
+
+function refreshCard(key) {
+  const p = PRODUCTS.find(x => x.key === key);
+  if (!p) return;
+  const actions = document.getElementById('actions-' + key);
+  if (actions) actions.innerHTML = buildActions(p);
+  const card = document.getElementById('card-' + key);
+  if (card) {
+    if (getQty(key) > 0) card.classList.add('in-cart');
+    else card.classList.remove('in-cart');
+  }
+  // refresh all gift buttons if a gift changed
+  if (p.isGift) {
+    PRODUCTS.filter(x => x.isGift).forEach(gp => {
+      const ga = document.getElementById('actions-' + gp.key);
+      if (ga) ga.innerHTML = buildActions(gp);
+    });
+  }
+}
+
+// ════════════════════════════════════════════
+// CART OPERATIONS
+// ════════════════════════════════════════════
+function handleAdd(key) {
+  const p = PRODUCTS.find(x => x.key === key);
+  if (!p) return;
+  if (p.twoStep && getQty(key) === 0) {
+    openModal(key, false);
+  } else {
+    setQty(key, getQty(key) + 1);
+  }
+}
+
+function changeQty(key, delta) {
+  const newQty = Math.max(0, getQty(key) + delta);
+  setQty(key, newQty);
+}
+
+function setQty(key, qty) {
+  if (!cart[key]) cart[key] = { qty: 0, variant: null };
+  cart[key].qty = qty;
+  if (qty === 0) cart[key].variant = null;
+  refreshCard(key);
+  updateTotalBar();
+  updateTabCounts();
+}
+
+function toggleGift(key) {
+  if (getQty(key) > 0) {
+    setQty(key, 0);
+  } else {
+    if (getGiftTotal() >= 2) return;
+    setQty(key, 1);
+  }
+}
+
+// ════════════════════════════════════════════
+// TOTAL BAR
+// ════════════════════════════════════════════
+function updateTotalBar() {
+  const total = getTotal();
+  const balance = BUDGET - total;
+  const pct = Math.min(100, (total / BUDGET) * 100);
+  document.getElementById('t-ordered').textContent = fmt(total);
+  document.getElementById('t-balance').textContent = fmt(Math.abs(balance));
+  document.getElementById('t-progress').style.width = pct + '%';
+  document.getElementById('t-progress').className = 'total-progress-fill' + (total > BUDGET ? ' over' : '');
+  const balItem = document.getElementById('t-balance-item');
+  const balLabel = document.getElementById('t-balance-label');
+  if (total > BUDGET) {
+    balItem.classList.add('over-budget');
+    balLabel.textContent = 'יתרה לתשלום:';
+  } else {
+    balItem.classList.remove('over-budget');
+    balLabel.textContent = 'יתרת תקציב:';
+  }
+}
+
+function updateTabCounts() {
+  const grouped = {};
+  CAT_ORDER.forEach((cat, idx) => { grouped[idx] = 0; });
+  PRODUCTS.forEach(p => {
+    const idx = CAT_ORDER.indexOf(p.cat);
+    if (idx >= 0) grouped[idx] += getQty(p.key);
+  });
+  CAT_ORDER.forEach((_, idx) => {
+    const el = document.getElementById('tab-count-' + idx);
+    if (el) {
+      el.textContent = grouped[idx];
+      el.style.display = grouped[idx] > 0 ? 'inline-flex' : 'none';
+    }
+  });
+}
+
+// ════════════════════════════════════════════
+// VARIANT MODAL
+// ════════════════════════════════════════════
+function openModal(key, editMode) {
+  const p = PRODUCTS.find(x => x.key === key);
+  if (!p) return;
+  currentModal = p;
+  pendingVariant = editMode ? getVariant(key) : null;
+
+  const variants = p.twoStep === 'palette' ? PALETTE_VARIANTS : FABRIC_VARIANTS;
+  const stepTitle = p.twoStep === 'palette' ? 'בחירת צבע פלטה' : 'בחירת דגם בד';
+  const stepNote = p.twoStep === 'palette'
+    ? `<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;">גודל: ${p.color}</p>`
+    : '';
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-product-preview">
+      <img src="${imgPath(p.img)}" alt="${p.desc}" onerror="this.src='${noImgSvg()}'">
+      <div class="mpd">
+        <div class="mpd-name">${p.desc}</div>
+        <div class="mpd-id">פריט ${p.id} | ${p.sku}</div>
+        <div class="mpd-price">${fmt(p.price)}</div>
+      </div>
+    </div>
+    <div class="modal-section-title">${stepTitle}</div>
+    ${stepNote}
+    <div class="variants-grid" id="variants-grid">
+      ${variants.map(v => `
+        <div class="variant-option ${pendingVariant === v.label ? 'selected' : ''}"
+             id="vopt-${v.id}" data-vid="${v.id}" data-vlabel="${v.label}" onclick="selectVariant(this)">
+          <img src="${imgPath(v.img)}" alt="${v.label}" onerror="this.src='${noImgSvg()}'">
+          <div class="vname">${v.label}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">ביטול</button>
+      <button class="btn-primary" id="modal-confirm-btn" onclick="confirmVariant()"
+        ${pendingVariant ? '' : 'disabled'}>אישור</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function selectVariant(el) {
+  pendingVariant = el.dataset.vlabel;
+  document.querySelectorAll('.variant-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('modal-confirm-btn').disabled = false;
+}
+
+function confirmVariant() {
+  if (!currentModal || !pendingVariant) return;
+  const key = currentModal.key;
+  if (!cart[key]) cart[key] = { qty: 0, variant: null };
+  if (cart[key].qty === 0) cart[key].qty = 1;
+  cart[key].variant = pendingVariant;
+  closeModal();
+  refreshCard(key);
+  updateTotalBar();
+  updateTabCounts();
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  currentModal = null;
+  pendingVariant = null;
+}
+
+// Close on overlay click
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ════════════════════════════════════════════
+// SUMMARY
+// ════════════════════════════════════════════
+function renderSummary() {
+  // Identity
+  document.getElementById('summary-identity').innerHTML = `
+    <div class="si-item"><div class="si-label">שם הצימר</div><div class="si-value">${identity.cabin}</div></div>
+    <div class="si-item"><div class="si-label">איש קשר</div><div class="si-value">${identity.contact}</div></div>
+    <div class="si-item"><div class="si-label">נייד</div><div class="si-value">${identity.phone}</div></div>
+    <div class="si-item"><div class="si-label">אי-מייל</div><div class="si-value">${identity.email}</div></div>
+  `;
+
+  const ordered = PRODUCTS.filter(p => getQty(p.key) > 0);
+  if (ordered.length === 0) {
+    document.getElementById('summary-table-wrap').innerHTML =
+      '<div class="no-items-notice">לא נבחרו פריטים. חזרו לקטלוג והוסיפו פריטים להזמנה.</div>';
+    document.getElementById('summary-footer').innerHTML = '';
+    document.getElementById('submit-area').innerHTML =
+      `<div class="summary-footer-btns">
+        <button class="btn-secondary" onclick="showScreen(3)">← חזור לקטלוג</button>
+      </div>`;
+    return;
+  }
+
+  const total = getTotal();
+  const balance = total - BUDGET;
+
+  let rows = ordered.map(p => {
+    const qty = getQty(p.key);
+    const variant = getVariant(p.key);
+    const subtotal = qty * (p.price || 0);
+    const variantCell = variant ? `<br><small style="color:var(--text-muted)">${variant}</small>` : '';
+    const priceCell = p.isGift ? 'מתנה 🎁' : fmt(p.price);
+    const subtotalCell = p.isGift ? 'מתנה' : fmt(subtotal);
+    return `<tr>
+      <td data-label="פריט"><strong>${p.id}</strong></td>
+      <td data-label='מק"ט'>${p.sku}</td>
+      <td data-label="קטגוריה">${p.cat}</td>
+      <td data-label="תיאור">${p.desc}${variantCell}</td>
+      <td data-label="כמות" style="text-align:center">${qty}</td>
+      <td data-label="מחיר יחידה">${priceCell}</td>
+      <td data-label='סה"כ'><strong>${subtotalCell}</strong></td>
+    </tr>`;
+  }).join('');
+
+  rows += `<tr class="summary-total-row">
+    <td colspan="5"></td>
+    <td style="text-align:left"><strong>סה"כ הזמנה:</strong></td>
+    <td><strong>${fmt(total)}</strong></td>
+  </tr>`;
+
+  if (balance > 0) {
+    rows += `<tr class="summary-balance-row">
+      <td colspan="5"></td>
+      <td style="text-align:left"><strong>יתרה לתשלום:</strong></td>
+      <td><strong>${fmt(balance)}</strong></td>
+    </tr>`;
+  }
+
+  document.getElementById('summary-table-wrap').innerHTML = `
+    <table class="summary-table">
+      <thead><tr>
+        <th>פריט</th><th>מק"ט</th><th>קטגוריה</th><th>תיאור</th>
+        <th>כמות</th><th>מחיר יחידה</th><th>סה"כ</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  document.getElementById('summary-footer').innerHTML = balance > 0
+    ? `<div style="background:#FDF2F2;border:1px solid #E8A0A0;border-radius:8px;padding:12px 16px;margin-top:16px;color:var(--danger);font-weight:600;">
+        ⚠️ סכום ההזמנה (${fmt(total)}) עולה על תקציב ₪9,500. יתרה לתשלום: <strong>${fmt(balance)}</strong>
+       </div>`
+    : '';
+
+  document.getElementById('submit-area').innerHTML = `
+    <div class="summary-footer-btns">
+      <button class="btn-secondary" onclick="showScreen(3)">← חזור לעריכה</button>
+      <button class="btn-primary btn-lg" onclick="submitOrder()">שלח הזמנה ←</button>
+    </div>`;
+}
+
+// ════════════════════════════════════════════
+// EXCEL EXPORT
+// ════════════════════════════════════════════
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
+  const ordered = PRODUCTS.filter(p => getQty(p.key) > 0);
+
+  const header = ['פריט', 'מק"ט', 'קטגוריה', 'תיאור', 'צבע / בחירה', 'דגם נבחר', 'כמות', 'מחיר יחידה', 'סה"כ'];
+  const rows = [header];
+
+  ordered.forEach(p => {
+    const qty = getQty(p.key);
+    const variant = getVariant(p.key) || '';
+    const subtotal = qty * (p.price || 0);
+    rows.push([
+      p.id, String(p.sku), p.cat, p.desc, p.color || '',
+      variant, qty,
+      p.isGift ? 'מתנה' : p.price,
+      p.isGift ? 'מתנה' : subtotal
+    ]);
+  });
+
+  const total = getTotal();
+  const balance = total - BUDGET;
+  rows.push([]);
+  rows.push(['', '', '', '', '', '', '', 'סה"כ הזמנה:', total]);
+  rows.push(['', '', '', '', '', '', '', 'תקציב:', BUDGET]);
+  if (balance > 0) {
+    rows.push(['', '', '', '', '', '', '', 'יתרה לתשלום:', balance]);
+  }
+  rows.push([]);
+  rows.push(['שם הצימר:', identity.cabin]);
+  rows.push(['איש קשר:', identity.contact]);
+  rows.push(['נייד:', identity.phone]);
+  rows.push(['אי-מייל:', identity.email]);
+  rows.push(['תאריך:', new Date().toLocaleDateString('he-IL')]);
+
+  const sheetName = (identity.cabin || 'הזמנה').replace(/[:\\/\[\]\*\?]/g, '').substring(0, 31);
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    {wch:8},{wch:16},{wch:14},{wch:40},{wch:20},{wch:12},{wch:7},{wch:14},{wch:12}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+  const date = new Date().toLocaleDateString('he-IL').replace(/\//g,'-');
+  const filename = `הזמנה_${sheetName}_${date}.xlsx`;
+  XLSX.writeFile(wb, filename);
+  const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+  return { base64, filename };
+}
+
+// ════════════════════════════════════════════
+// EMAIL via Google Apps Script
+// ════════════════════════════════════════════
+function buildEmailBody() {
+  const ordered = PRODUCTS.filter(p => getQty(p.key) > 0);
+  const total = getTotal();
+  const balance = total - BUDGET;
+  const date = new Date().toLocaleDateString('he-IL');
+
+  let lines = [];
+  lines.push(`סיכום הזמנת ריהוט — ${identity.cabin}`);
+  lines.push(`תאריך: ${date}`);
+  lines.push(`איש קשר: ${identity.contact} | נייד: ${identity.phone} | מייל: ${identity.email}`);
+  lines.push('');
+  lines.push('פרטי ההזמנה:');
+  lines.push('─────────────────────────────────────────');
+
+  ordered.forEach(p => {
+    const qty = getQty(p.key);
+    const variant = getVariant(p.key) ? ` | דגם: ${getVariant(p.key)}` : '';
+    const subtotal = p.isGift ? 'מתנה' : fmt(qty * (p.price || 0));
+    lines.push(`${p.id} | ${p.desc}${variant} | כמות: ${qty} | ${p.isGift ? 'מתנה' : fmt(p.price)} | ${subtotal}`);
+  });
+
+  lines.push('─────────────────────────────────────────');
+  lines.push(`סה"כ הזמנה: ${fmt(total)}`);
+  if (balance > 0) lines.push(`יתרה לתשלום (מעל תקציב): ${fmt(balance)}`);
+  lines.push(`תקציב מנוצל: ${fmt(Math.min(total, BUDGET))} מתוך ${fmt(BUDGET)}`);
+
+  return lines.join('\n');
+}
+
+async function sendEmail(xlsxBase64, xlsxFilename) {
+  if (APPS_SCRIPT_URL === 'PLACEHOLDER_APPS_SCRIPT_URL') {
+    console.warn('Apps Script URL not configured — skipping email');
+    return { ok: false, reason: 'no-url' };
+  }
+  try {
+    const body = buildEmailBody();
+    const date = new Date().toLocaleDateString('he-IL');
+    const params = new URLSearchParams({
+      to: identity.email,
+      cc: CC_EMAILS.join(','),
+      subject: `הזמנת ריהוט — ${identity.cabin} — ${date}`,
+      body: body,
+      cabin: identity.cabin,
+      contact: identity.contact,
+      phone: identity.phone,
+      email: identity.email,
+      total: getTotal(),
+      date: date,
+      xlsxBase64: xlsxBase64 || '',
+      xlsxFilename: xlsxFilename || 'הזמנה.xlsx'
+    });
+    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: params, mode: 'no-cors' });
+    return { ok: true };
+  } catch(e) {
+    console.error('Email send failed:', e);
+    return { ok: false, reason: e.message };
+  }
+}
+
+// ════════════════════════════════════════════
+// SUBMIT ORDER
+// ════════════════════════════════════════════
+async function submitOrder() {
+  const ordered = PRODUCTS.filter(p => getQty(p.key) > 0);
+  if (ordered.length === 0) {
+    alert('לא נבחרו פריטים. אנא חזרו לקטלוג והוסיפו פריטים לפני שליחת ההזמנה.');
+    return;
+  }
+
+  const btn = document.querySelector('#submit-area .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'שולח...'; }
+
+  try {
+    const { base64, filename } = exportExcel();
+    const emailResult = await sendEmail(base64, filename);
+
+    const total = getTotal();
+    const balance = total - BUDGET;
+
+    document.getElementById('summary-table-wrap').innerHTML = '';
+    document.getElementById('summary-footer').innerHTML = '';
+    document.getElementById('summary-identity').innerHTML = '';
+    document.getElementById('submit-area').innerHTML = `
+      <div class="success-box">
+        <div class="success-icon">✅</div>
+        <h3>ההזמנה נשלחה בהצלחה!</h3>
+        <p>קובץ Excel הורד למחשב שלכם.</p>
+        ${emailResult.ok
+          ? `<p style="margin-top:8px">אישור נשלח לכתובת: <strong>${identity.email}</strong></p>`
+          : `<p style="margin-top:8px;color:var(--text-muted)">שימו לב: לא הצלחנו לשלוח מייל אוטומטי. אנא שמרו את קובץ ה-Excel.</p>`}
+        ${balance > 0 ? `<p style="margin-top:12px;color:var(--danger);font-weight:600;">יתרה לתשלום: ${fmt(balance)}</p>` : ''}
+        <p style="margin-top:16px;font-size:0.85rem;color:var(--text-muted)">
+          ${identity.cabin} | סה"כ: ${fmt(total)}
+        </p>
+      </div>`;
+    document.querySelector('.summary-wrap h2').textContent = '';
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'שלח הזמנה ←'; }
+    alert('אירעה שגיאה בעת שליחת ההזמנה. אנא נסו שוב.');
+    console.error(e);
+  }
+}
+
+// ════════════════════════════════════════════
+// INIT — build catalog when screen 3 shown
+// ════════════════════════════════════════════
+(function() {
+  // Patch showScreen to init catalog on first show of screen 3
+  const origShowScreen = showScreen;
+  let catalogBuilt = false;
+  window.showScreen = function(n) {
+    if (n === 3 && !catalogBuilt) {
+      catalogBuilt = true;
+      origShowScreen(3);
+      initCatalog();
+    } else {
+      origShowScreen(n);
+    }
+  };
+})();
+</script>
+</body>
+</html>
