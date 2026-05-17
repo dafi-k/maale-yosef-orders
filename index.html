@@ -1530,9 +1530,27 @@ async function exportExcel() {
     cell.alignment = { horizontal:'right', vertical:'middle' };
   });
 
+  // Load all images in parallel with 4s timeout per image
+  const imageData = await Promise.all(ordered.map(async p => {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 4000);
+      const resp = await fetch('pic/' + p.img, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (!resp.ok) return null;
+      const blob = await resp.blob();
+      const b64 = await new Promise(res => {
+        const reader = new FileReader();
+        reader.onloadend = () => res(reader.result.split(',')[1]);
+        reader.readAsDataURL(blob);
+      });
+      return { b64, ext: /\.png$/i.test(p.img) ? 'png' : 'jpeg' };
+    } catch(e) { return null; }
+  }));
+
   for (let i = 0; i < ordered.length; i++) {
     const p = ordered[i];
-    const qty   = getQty(p.key);
+    const qty     = getQty(p.key);
     const variant = getVariant(p.key) || '';
     const price   = p.isGift ? 'מתנה' : (p.price || 0);
     const subtotal = p.isGift ? 'מתנה' : qty * (p.price || 0);
@@ -1544,20 +1562,10 @@ async function exportExcel() {
       cell.border = { bottom: { style:'thin', color:{ argb:'FFE8D5B7' } } };
     });
 
-    try {
-      const resp = await fetch('pic/' + p.img);
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const b64 = await new Promise(res => {
-          const reader = new FileReader();
-          reader.onloadend = () => res(reader.result.split(',')[1]);
-          reader.readAsDataURL(blob);
-        });
-        const ext = /\.png$/i.test(p.img) ? 'png' : 'jpeg';
-        const imgId = workbook.addImage({ base64: b64, extension: ext });
-        ws.addImage(imgId, { tl:{ col:0, row:i+1 }, br:{ col:1, row:i+2 }, editAs:'oneCell' });
-      }
-    } catch(e) { /* skip image silently */ }
+    if (imageData[i]) {
+      const imgId = workbook.addImage({ base64: imageData[i].b64, extension: imageData[i].ext });
+      ws.addImage(imgId, { tl:{ col:0, row:i+1 }, br:{ col:1, row:i+2 }, editAs:'oneCell' });
+    }
   }
 
   const total = getTotal();
