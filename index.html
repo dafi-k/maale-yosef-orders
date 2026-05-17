@@ -998,8 +998,9 @@ const CAT_ORDER = ['כורסאות','כיסאות','כיסאות בר','פינת
 // ════════════════════════════════════════════
 const cart = {}; // { [key]: { qty, variant } }
 let identity = {};
-let currentModal = null; // product being configured in modal
-let pendingVariant = null; // selected variant in modal (before confirm)
+let currentModal = null;
+let pendingVariant = null;
+let pendingShape = null;
 
 // ════════════════════════════════════════════
 // HELPERS
@@ -1263,12 +1264,84 @@ function openModal(key, editMode) {
   const p = PRODUCTS.find(x => x.key === key);
   if (!p) return;
   currentModal = p;
-  pendingVariant = editMode ? getVariant(key) : null;
 
+  if (editMode && getVariant(key)) {
+    const existing = getVariant(key);
+    if (p.cat === 'פינת קפה' && existing.includes(' + ')) {
+      const parts = existing.split(' + ');
+      pendingShape = parts[0];
+      pendingVariant = parts.slice(1).join(' + ');
+    } else {
+      pendingShape = null;
+      pendingVariant = existing;
+    }
+  } else {
+    pendingShape = null;
+    pendingVariant = null;
+  }
+
+  if (p.cat === 'פינת קפה') {
+    showShapeStep();
+  } else {
+    showVariantStep();
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function showShapeStep() {
+  const p = currentModal;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-product-preview">
+      <img src="${imgPath(p.img)}" alt="${p.desc}" onerror="this.src='${noImgSvg()}'">
+      <div class="mpd">
+        <div class="mpd-name">${p.desc}</div>
+        <div class="mpd-id">פריט ${p.id} | ${p.sku}</div>
+        <div class="mpd-price">${fmt(p.price)}</div>
+      </div>
+    </div>
+    <div class="modal-section-title">שלב 1: בחירת צורת הפלטה</div>
+    <div class="variants-grid" id="variants-grid" style="grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="variant-option ${pendingShape === 'עגולה' ? 'selected' : ''}"
+           data-shape="עגולה" onclick="selectShape(this)"
+           style="flex-direction:column;align-items:center;justify-content:center;padding:20px 12px;gap:6px;cursor:pointer;">
+        <div style="font-size:3rem;line-height:1.1;color:var(--primary);">⬤</div>
+        <div class="vname" style="font-size:1rem;font-weight:700;">עגולה</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);">קוטר 70 ס"מ</div>
+      </div>
+      <div class="variant-option ${pendingShape === 'מרובעת' ? 'selected' : ''}"
+           data-shape="מרובעת" onclick="selectShape(this)"
+           style="flex-direction:column;align-items:center;justify-content:center;padding:20px 12px;gap:6px;cursor:pointer;">
+        <div style="font-size:3rem;line-height:1.1;color:var(--primary);">■</div>
+        <div class="vname" style="font-size:1rem;font-weight:700;">מרובעת</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);">70×70 ס"מ</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">ביטול</button>
+      <button class="btn-primary" id="modal-next-btn" onclick="showVariantStep()"
+        ${pendingShape ? '' : 'disabled'}>הבא ←</button>
+    </div>
+  `;
+}
+
+function selectShape(el) {
+  pendingShape = el.dataset.shape;
+  document.querySelectorAll('#variants-grid .variant-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  const btn = document.getElementById('modal-next-btn');
+  if (btn) btn.disabled = false;
+}
+
+function showVariantStep() {
+  const p = currentModal;
   const variants = p.twoStep === 'palette' ? PALETTE_VARIANTS : FABRIC_VARIANTS;
-  const stepTitle = p.twoStep === 'palette' ? 'בחירת צבע פלטה' : 'בחירת דגם בד';
+  const isCoffeeTable = p.cat === 'פינת קפה';
+  const stepTitle = isCoffeeTable ? 'שלב 2: בחירת צבע פלטה' : (p.twoStep === 'palette' ? 'בחירת צבע פלטה' : 'בחירת דגם בד');
+  const shapeLabel = isCoffeeTable && pendingShape
+    ? (pendingShape === 'עגולה' ? 'עגולה — קוטר 70 ס"מ' : 'מרובעת — 70×70 ס"מ')
+    : p.color;
   const stepNote = p.twoStep === 'palette'
-    ? `<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;">גודל: ${p.color}</p>`
+    ? `<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;">גודל: ${shapeLabel}</p>`
     : '';
 
   document.getElementById('modal-body').innerHTML = `
@@ -1292,17 +1365,18 @@ function openModal(key, editMode) {
       `).join('')}
     </div>
     <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeModal()">ביטול</button>
+      ${isCoffeeTable
+        ? `<button class="btn-secondary" onclick="showShapeStep()">← חזור</button>`
+        : `<button class="btn-secondary" onclick="closeModal()">ביטול</button>`}
       <button class="btn-primary" id="modal-confirm-btn" onclick="confirmVariant()"
         ${pendingVariant ? '' : 'disabled'}>אישור</button>
     </div>
   `;
-  document.getElementById('modal-overlay').classList.add('open');
 }
 
 function selectVariant(el) {
   pendingVariant = el.dataset.vlabel;
-  document.querySelectorAll('.variant-option').forEach(e => e.classList.remove('selected'));
+  document.querySelectorAll('#variants-grid .variant-option').forEach(e => e.classList.remove('selected'));
   el.classList.add('selected');
   document.getElementById('modal-confirm-btn').disabled = false;
 }
@@ -1312,7 +1386,9 @@ function confirmVariant() {
   const key = currentModal.key;
   if (!cart[key]) cart[key] = { qty: 0, variant: null };
   if (cart[key].qty === 0) cart[key].qty = 1;
-  cart[key].variant = pendingVariant;
+  cart[key].variant = (currentModal.cat === 'פינת קפה' && pendingShape)
+    ? `${pendingShape} + ${pendingVariant}`
+    : pendingVariant;
   closeModal();
   refreshCard(key);
   updateTotalBar();
@@ -1323,6 +1399,7 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
   currentModal = null;
   pendingVariant = null;
+  pendingShape = null;
 }
 
 // Close on overlay click
@@ -1377,14 +1454,14 @@ function renderSummary() {
 
   rows += `<tr class="summary-total-row">
     <td colspan="5"></td>
-    <td style="text-align:left"><strong>סה"כ הזמנה:</strong></td>
+    <td><strong>סה"כ הזמנה:</strong></td>
     <td><strong>${fmt(total)}</strong></td>
   </tr>`;
 
   if (balance > 0) {
     rows += `<tr class="summary-balance-row">
       <td colspan="5"></td>
-      <td style="text-align:left"><strong>יתרה לתשלום:</strong></td>
+      <td><strong>יתרה לתשלום:</strong></td>
       <td><strong>${fmt(balance)}</strong></td>
     </tr>`;
   }
@@ -1453,6 +1530,7 @@ function exportExcel() {
   ws['!cols'] = [
     {wch:8},{wch:16},{wch:14},{wch:40},{wch:20},{wch:12},{wch:7},{wch:14},{wch:12}
   ];
+  ws['!sheetViews'] = [{ rightToLeft: true }];
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
 
   const date = new Date().toLocaleDateString('he-IL').replace(/\//g,'-');
@@ -1512,9 +1590,7 @@ async function sendEmail(xlsxBase64, xlsxFilename) {
       phone: identity.phone,
       email: identity.email,
       total: getTotal(),
-      date: date,
-      xlsxBase64: xlsxBase64 || '',
-      xlsxFilename: xlsxFilename || 'הזמנה.xlsx'
+      date: date
     });
     await fetch(APPS_SCRIPT_URL, { method: 'POST', body: params, mode: 'no-cors' });
     return { ok: true };
