@@ -814,6 +814,11 @@ table.summary-table tr:hover td { background: #FAFAF7; }
         <span class="budget-amount">₪9,500</span>
         <span class="budget-label">תקציב לרשותכם לרענון הצימר</span>
       </div>
+      <div style="background:#fff3cd;border:2px solid #d4a017;border-radius:10px;padding:14px 20px;margin-bottom:20px;text-align:center;">
+        <div style="font-size:1.1rem;font-weight:800;color:#7a4f00;">⚠️ שימו לב — עלות הובלה והרכבה</div>
+        <div style="font-size:1rem;font-weight:700;color:#c0392b;margin-top:6px;">₪500 לכל הזמנה</div>
+        <div style="font-size:0.88rem;color:#5a3e00;margin-top:4px;">עלות זו אינה כלולה בתקציב — יש להוסיפה לסכום הכולל</div>
+      </div>
       <div class="instructions-body" id="instructions-text">
         <!-- ════════════════════════════════════════════
              מקום להוראות — יעודכן על ידי המזמינה
@@ -1559,9 +1564,11 @@ function buildEmailBody() {
 
   ordered.forEach(p => {
     const qty = getQty(p.key);
-    const variant = getVariant(p.key) ? ` | דגם: ${getVariant(p.key)}` : '';
+    const variant = getVariant(p.key);
+    const desc = variant ? `${p.desc} — ${variant}` : p.desc;
+    const price = p.isGift ? 'מתנה' : fmt(p.price);
     const subtotal = p.isGift ? 'מתנה' : fmt(qty * (p.price || 0));
-    lines.push(`${p.id} | ${p.desc}${variant} | כמות: ${qty} | ${p.isGift ? 'מתנה' : fmt(p.price)} | ${subtotal}`);
+    lines.push(`${p.id} | ${p.sku} | ${desc} | ${qty} | ${price} | ${subtotal}`);
   });
 
   lines.push('─────────────────────────────────────────');
@@ -1590,7 +1597,9 @@ async function sendEmail(xlsxBase64, xlsxFilename) {
       phone: identity.phone,
       email: identity.email,
       total: getTotal(),
-      date: date
+      date: date,
+      xlsxBase64: xlsxBase64 || '',
+      xlsxFilename: xlsxFilename || `הזמנה_${identity.cabin}.xlsx`
     });
     await fetch(APPS_SCRIPT_URL, { method: 'POST', body: params, mode: 'no-cors' });
     return { ok: true };
