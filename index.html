@@ -1559,21 +1559,34 @@ async function exportExcel() {
     cell.alignment = { horizontal:'right', vertical:'middle' };
   });
 
-  // Load all images in parallel with 4s timeout per image
+  // Load images as tiny 80×60 JPEG thumbnails via Canvas — fast & small
   const imageData = await Promise.all(ordered.map(async p => {
     try {
       const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 4000);
+      const t = setTimeout(() => ctrl.abort(), 3000);
       const resp = await fetch('pic/' + p.img, { signal: ctrl.signal });
       clearTimeout(t);
       if (!resp.ok) return null;
       const blob = await resp.blob();
-      const b64 = await new Promise(res => {
-        const reader = new FileReader();
-        reader.onloadend = () => res(reader.result.split(',')[1]);
-        reader.readAsDataURL(blob);
+      return await new Promise(res => {
+        const img = new Image();
+        const blobUrl = URL.createObjectURL(blob);
+        img.onload = () => {
+          URL.revokeObjectURL(blobUrl);
+          const canvas = document.createElement('canvas');
+          canvas.width = 80; canvas.height = 60;
+          const ctx = canvas.getContext('2d');
+          const scale = Math.min(80 / img.width, 60 / img.height);
+          const w = img.width * scale, h = img.height * scale;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, 80, 60);
+          ctx.drawImage(img, (80 - w) / 2, (60 - h) / 2, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          res({ b64: dataUrl.split(',')[1], ext: 'jpeg' });
+        };
+        img.onerror = () => { URL.revokeObjectURL(blobUrl); res(null); };
+        img.src = blobUrl;
       });
-      return { b64, ext: /\.png$/i.test(p.img) ? 'png' : 'jpeg' };
     } catch(e) { return null; }
   }));
 
@@ -1632,12 +1645,12 @@ async function exportExcel() {
   const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 
-  const bytes = new Uint8Array(buffer);
-  let bin = '';
-  for (let i = 0; i < bytes.length; i += 8192) {
-    bin += String.fromCharCode(...bytes.subarray(i, Math.min(i + 8192, bytes.length)));
-  }
-  return { base64: btoa(bin), filename };
+  const base64 = await new Promise(res => {
+    const reader = new FileReader();
+    reader.onloadend = () => res(reader.result.split(',')[1]);
+    reader.readAsDataURL(new Blob([buffer]));
+  });
+  return { base64, filename };
 }
 
 // ════════════════════════════════════════════
@@ -1715,10 +1728,11 @@ async function submitOrder() {
   }
 
   const btn = document.querySelector('#submit-area .btn-primary');
-  if (btn) { btn.disabled = true; btn.textContent = 'שולח...'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'מכין קובץ Excel...'; }
 
   try {
     const { base64, filename } = await exportExcel();
+    if (btn) btn.textContent = 'שולח מייל...';
     const emailResult = await sendEmail(base64, filename);
 
     const total = getTotal();
