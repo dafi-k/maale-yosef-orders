@@ -834,7 +834,7 @@ table.summary-table tr:hover td { background: #FAFAF7; }
           <li>לחצו <strong>"שלח הזמנה"</strong> — תקבלו סיכום במייל ויורד קובץ Excel.</li>
         </ol>
         <p><strong>שימו לב:</strong> אין חובה לנצל את מלוא התקציב. ניתן להזמין כמה פריטים שתרצו, כל עוד סכום ההזמנה אינו עולה על ₪9,500. <br>אם סכום ההזמנה עולה על ₪9,500, ההפרש ייחשב כיתרה לתשלום עצמי.</p>
-        <p>בסוף הקטלוג, בקטגוריית <strong>מלונאי</strong>, תמצאו 2 חבילות בונוס <strong>במתנה</strong> — ניתן לבחור עד 2 חבילות.</p>
+        <p>בסוף הקטלוג, בקטגוריית <strong>מלונאי</strong>, תמצאו 2 חבילות בונוס במתנה — <strong style="color:#c0392b;background:#fdf2f2;padding:2px 8px;border-radius:4px;border:1px solid #e8a0a0;">ניתן לבחור מתנה אחת בלבד!</strong></p>
       </div>
       <div class="btn-row">
         <button class="btn-secondary" onclick="showScreen(1)">← חזור</button>
@@ -958,7 +958,7 @@ const PRODUCTS = [
   // ── כיסאות בר ──
   {key:'B1',  id:'B1',  sku:'SP0305-GR12',       cat:'כיסאות בר',    desc:'כיסא בר פלסטיק',                color:'אפור',                         price:399,  img:'B1.jpg'},
   {key:'B2',  id:'B2',  sku:'SP0358-Y03',        cat:'כיסאות בר',    desc:'כיסא בר פלסטיק',                color:'צהוב',                         price:299,  img:'B2.jpg'},
-  {key:'B3',  id:'B3',  sku:'SP0314-GR01',       cat:'כיסאות בר',    desc:'כיסא בר פלסטיק',                color:'לבן',                          price:299,  img:'B3.png'},
+  {key:'B3',  id:'B3',  sku:'SP0314-GR01',       cat:'כיסאות בר',    desc:'כיסא בר פלסטיק',                color:'לבן',                          price:299,  img:'B3.jpg'},
   {key:'B4',  id:'B4',  sku:'SP0315-DGF',        cat:'כיסאות בר',    desc:'כיסא בר בד',                    color:'אפור',                         price:599,  img:'B4.jpg'},
   {key:'B5',  id:'B5',  sku:'15131300',          cat:'כיסאות בר',    desc:'כיסא בר דמוי עור',              color:'קמל',                          price:699,  img:'b5.jpg'},
   {key:'B6',  id:'B6',  sku:'15131304',          cat:'כיסאות בר',    desc:'כיסא בר דמוי עור',              color:'אפור',                         price:699,  img:'B6.PNG'},
@@ -1150,7 +1150,7 @@ function buildCard(p) {
 function buildActions(p) {
   if (p.isGift) {
     const sel = getQty(p.key) > 0;
-    const disabled = !sel && getGiftTotal() >= 2;
+    const disabled = !sel && getGiftTotal() >= 1;
     return `<button class="gift-checkbox-btn${sel ? ' selected' : ''}"
       ${disabled ? 'disabled' : ''}
       onclick="toggleGift('${p.key}')">${sel ? '✓ נבחרה' : '+ בחר חבילה'}</button>`;
@@ -1219,7 +1219,7 @@ function toggleGift(key) {
   if (getQty(key) > 0) {
     setQty(key, 0);
   } else {
-    if (getGiftTotal() >= 2) return;
+    if (getGiftTotal() >= 1) return;
     setQty(key, 1);
   }
 }
