@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>קטלוג ריהוט רענון צימרים | מועצה אזורית מעלה יוסף</title>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
 :root {
   --bg: #F5F0E8;
@@ -758,9 +758,11 @@ table.summary-table tr:hover td { background: #FAFAF7; }
     min-width: 75px;
     flex-shrink: 0;
   }
+  table.summary-table td[data-label="תמונה"] { justify-content: center; padding: 8px 0; }
+  table.summary-table td[data-label="תמונה"]::before { display: none; }
   .summary-total-row { background: var(--bg) !important; }
-  .summary-total-row td[colspan="5"],
-  .summary-balance-row td[colspan="5"] { display: none; }
+  .summary-total-row td[colspan="6"],
+  .summary-balance-row td[colspan="6"] { display: none; }
   .summary-total-row td,
   .summary-balance-row td { font-size: 0.9rem; padding: 6px 0; }
   .summary-identity-box { grid-template-columns: 1fr 1fr; }
@@ -1447,6 +1449,11 @@ function renderSummary() {
     const priceCell = p.isGift ? 'מתנה 🎁' : fmt(p.price);
     const subtotalCell = p.isGift ? 'מתנה' : fmt(subtotal);
     return `<tr>
+      <td data-label="תמונה" style="text-align:center;padding:6px;">
+        <img src="pic/${p.img}" alt="${p.id}"
+          style="width:64px;height:64px;object-fit:contain;background:var(--bg);border-radius:6px;padding:4px;display:block;margin:auto;"
+          onerror="this.style.display='none'">
+      </td>
       <td data-label="פריט"><strong>${p.id}</strong></td>
       <td data-label='מק"ט'>${p.sku}</td>
       <td data-label="קטגוריה">${p.cat}</td>
@@ -1458,14 +1465,14 @@ function renderSummary() {
   }).join('');
 
   rows += `<tr class="summary-total-row">
-    <td colspan="5"></td>
+    <td colspan="6"></td>
     <td><strong>סה"כ הזמנה:</strong></td>
     <td><strong>${fmt(total)}</strong></td>
   </tr>`;
 
   if (balance > 0) {
     rows += `<tr class="summary-balance-row">
-      <td colspan="5"></td>
+      <td colspan="6"></td>
       <td><strong>יתרה לתשלום:</strong></td>
       <td><strong>${fmt(balance)}</strong></td>
     </tr>`;
@@ -1474,7 +1481,7 @@ function renderSummary() {
   document.getElementById('summary-table-wrap').innerHTML = `
     <table class="summary-table">
       <thead><tr>
-        <th>פריט</th><th>מק"ט</th><th>קטגוריה</th><th>תיאור</th>
+        <th>תמונה</th><th>פריט</th><th>מק"ט</th><th>קטגוריה</th><th>תיאור</th>
         <th>כמות</th><th>מחיר יחידה</th><th>סה"כ</th>
       </tr></thead>
       <tbody>${rows}</tbody>
@@ -1494,55 +1501,102 @@ function renderSummary() {
 }
 
 // ════════════════════════════════════════════
-// EXCEL EXPORT
+// EXCEL EXPORT (ExcelJS — with embedded images)
 // ════════════════════════════════════════════
-function exportExcel() {
-  const wb = XLSX.utils.book_new();
+async function exportExcel() {
+  const workbook = new ExcelJS.Workbook();
   const ordered = PRODUCTS.filter(p => getQty(p.key) > 0);
+  const sheetName = (identity.cabin || 'הזמנה').replace(/[:\\/\[\]\*\?]/g, '').substring(0, 31);
+  const ws = workbook.addWorksheet(sheetName, { views: [{ rightToLeft: true }] });
 
-  const header = ['פריט', 'מק"ט', 'קטגוריה', 'תיאור', 'צבע / בחירה', 'דגם נבחר', 'כמות', 'מחיר יחידה', 'סה"כ'];
-  const rows = [header];
+  ws.columns = [
+    { width: 11 },  // תמונה
+    { width: 8  },  // פריט
+    { width: 16 },  // מק"ט
+    { width: 14 },  // קטגוריה
+    { width: 40 },  // תיאור
+    { width: 18 },  // צבע / בחירה
+    { width: 14 },  // דגם נבחר
+    { width: 7  },  // כמות
+    { width: 14 },  // מחיר
+    { width: 12 },  // סה"כ
+  ];
 
-  ordered.forEach(p => {
-    const qty = getQty(p.key);
-    const variant = getVariant(p.key) || '';
-    const subtotal = qty * (p.price || 0);
-    rows.push([
-      p.id, String(p.sku), p.cat, p.desc, p.color || '',
-      variant, qty,
-      p.isGift ? 'מתנה' : p.price,
-      p.isGift ? 'מתנה' : subtotal
-    ]);
+  const hdr = ws.addRow(['תמונה','פריט','מק"ט','קטגוריה','תיאור','צבע / בחירה','דגם נבחר','כמות','מחיר','סה"כ']);
+  hdr.height = 22;
+  hdr.eachCell(cell => {
+    cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FF6B4E2A' } };
+    cell.font = { color:{ argb:'FFFFFFFF' }, bold:true, size:10 };
+    cell.alignment = { horizontal:'right', vertical:'middle' };
   });
+
+  for (let i = 0; i < ordered.length; i++) {
+    const p = ordered[i];
+    const qty   = getQty(p.key);
+    const variant = getVariant(p.key) || '';
+    const price   = p.isGift ? 'מתנה' : (p.price || 0);
+    const subtotal = p.isGift ? 'מתנה' : qty * (p.price || 0);
+
+    const row = ws.addRow(['', p.id, String(p.sku), p.cat, p.desc, p.color||'', variant, qty, price, subtotal]);
+    row.height = 58;
+    row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      cell.alignment = { horizontal:'right', vertical:'middle', wrapText: colNum === 5 };
+      cell.border = { bottom: { style:'thin', color:{ argb:'FFE8D5B7' } } };
+    });
+
+    try {
+      const resp = await fetch('pic/' + p.img);
+      if (resp.ok) {
+        const blob = await resp.blob();
+        const b64 = await new Promise(res => {
+          const reader = new FileReader();
+          reader.onloadend = () => res(reader.result.split(',')[1]);
+          reader.readAsDataURL(blob);
+        });
+        const ext = /\.png$/i.test(p.img) ? 'png' : 'jpeg';
+        const imgId = workbook.addImage({ base64: b64, extension: ext });
+        ws.addImage(imgId, { tl:{ col:0, row:i+1 }, br:{ col:1, row:i+2 }, editAs:'oneCell' });
+      }
+    } catch(e) { /* skip image silently */ }
+  }
 
   const total = getTotal();
   const balance = total - BUDGET;
-  rows.push([]);
-  rows.push(['', '', '', '', '', '', '', 'סה"כ הזמנה:', total]);
-  rows.push(['', '', '', '', '', '', '', 'תקציב:', BUDGET]);
+  ws.addRow([]);
+  const tRow = ws.addRow(['','','','','','','','','סה"כ הזמנה:', total]);
+  tRow.getCell(9).font = { bold:true };  tRow.getCell(10).font = { bold:true };
+  tRow.getCell(9).alignment = tRow.getCell(10).alignment = { horizontal:'right' };
+  const bRow = ws.addRow(['','','','','','','','','תקציב:', BUDGET]);
+  bRow.getCell(9).alignment = bRow.getCell(10).alignment = { horizontal:'right' };
   if (balance > 0) {
-    rows.push(['', '', '', '', '', '', '', 'יתרה לתשלום:', balance]);
+    const balRow = ws.addRow(['','','','','','','','','יתרה לתשלום:', balance]);
+    [9,10].forEach(n => {
+      balRow.getCell(n).font = { bold:true, color:{ argb:'FFCC0000' } };
+      balRow.getCell(n).alignment = { horizontal:'right' };
+    });
   }
-  rows.push([]);
-  rows.push(['שם הצימר:', identity.cabin]);
-  rows.push(['איש קשר:', identity.contact]);
-  rows.push(['נייד:', identity.phone]);
-  rows.push(['אי-מייל:', identity.email]);
-  rows.push(['תאריך:', new Date().toLocaleDateString('he-IL')]);
+  ws.addRow([]);
+  ws.addRow(['שם הצימר:', identity.cabin]);
+  ws.addRow(['איש קשר:', identity.contact]);
+  ws.addRow(['נייד:', identity.phone]);
+  ws.addRow(['אי-מייל:', identity.email]);
+  ws.addRow(['תאריך:', new Date().toLocaleDateString('he-IL')]);
 
-  const sheetName = (identity.cabin || 'הזמנה').replace(/[:\\/\[\]\*\?]/g, '').substring(0, 31);
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [
-    {wch:8},{wch:16},{wch:14},{wch:40},{wch:20},{wch:12},{wch:7},{wch:14},{wch:12}
-  ];
-  ws['!sheetViews'] = [{ rightToLeft: true }];
-  XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
+  const buffer = await workbook.xlsx.writeBuffer();
   const date = new Date().toLocaleDateString('he-IL').replace(/\//g,'-');
   const filename = `הזמנה_${sheetName}_${date}.xlsx`;
-  XLSX.writeFile(wb, filename);
-  const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-  return { base64, filename };
+
+  const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+
+  const bytes = new Uint8Array(buffer);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 8192) {
+    bin += String.fromCharCode(...bytes.subarray(i, Math.min(i + 8192, bytes.length)));
+  }
+  return { base64: btoa(bin), filename };
 }
 
 // ════════════════════════════════════════════
@@ -1623,7 +1677,7 @@ async function submitOrder() {
   if (btn) { btn.disabled = true; btn.textContent = 'שולח...'; }
 
   try {
-    const { base64, filename } = exportExcel();
+    const { base64, filename } = await exportExcel();
     const emailResult = await sendEmail(base64, filename);
 
     const total = getTotal();
