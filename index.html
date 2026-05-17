@@ -770,6 +770,10 @@ table.summary-table tr:hover td { background: #FAFAF7; }
 @media (max-width: 400px) {
   .products-grid { grid-template-columns: 1fr; }
 }
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
 </style>
 </head>
 <body>
@@ -1061,8 +1065,33 @@ function goToInstructions() {
 }
 
 function goToSummary() {
+  if (getGiftTotal() === 0) {
+    const giftIdx = CAT_ORDER.indexOf('מלונאי');
+    activateTab(giftIdx);
+    const btn = document.getElementById('tab-btn-' + giftIdx);
+    if (btn) btn.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
+    showGiftReminder();
+    return;
+  }
   renderSummary();
   showScreen(4);
+}
+
+function showGiftReminder() {
+  const old = document.getElementById('gift-reminder');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.id = 'gift-reminder';
+  el.style.cssText = [
+    'position:fixed;top:0;right:0;left:0;z-index:500',
+    'background:#c0392b;color:#fff;text-align:center',
+    'padding:16px 20px;font-size:1rem;font-weight:700',
+    'box-shadow:0 3px 12px rgba(0,0,0,0.3)',
+    'animation:slideDown 0.3s ease'
+  ].join(';');
+  el.innerHTML = '🎁 טרם בחרת מתנה — יש לבחור מתנה אחת מהקטגוריה למטה לפני שליחת ההזמנה';
+  document.body.appendChild(el);
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 5000);
 }
 
 // ════════════════════════════════════════════
