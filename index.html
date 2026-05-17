@@ -1593,7 +1593,11 @@ async function exportExcel() {
 
     if (imageData[i]) {
       const imgId = workbook.addImage({ base64: imageData[i].b64, extension: imageData[i].ext });
-      ws.addImage(imgId, { tl:{ col:0, row:i+1 }, br:{ col:1, row:i+2 }, editAs:'oneCell' });
+      ws.addImage(imgId, {
+        tl: { col: 0, row: i + 1, nativeColOff: 3 * 9525, nativeRowOff: 3 * 9525 },
+        ext: { width: 70, height: 52 },
+        editAs: 'oneCell'
+      });
     }
   }
 
