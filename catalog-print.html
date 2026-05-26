@@ -523,30 +523,68 @@ function waitForImages() {
    Reason: opening a local file (file://) causes "Tainted canvas"
    — images drawn from file:// block canvas.toDataURL().
    Converting to data: URLs first prevents canvas tainting.
+
+   Strategy:
+   1. Try fetch() — works in most Chrome versions for file://
+   2. Fall back to XHR (status=0 is OK for file://)
+   3. If both fail → use BLANK pixel (prevents taint, no crash)
 ════════════════════════════════════════════════════════ */
+
+// 1×1 transparent GIF — safe data: URL that never taints canvas
+const BLANK_IMG = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+function blobToDataURL(blob) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onloadend = () => res(fr.result);
+    fr.onerror   = rej;
+    fr.readAsDataURL(blob);
+  });
+}
+
+async function urlToDataURL(url) {
+  // Try fetch first
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    if (blob.size > 0) return await blobToDataURL(blob);
+  } catch (e1) { /* fetch failed, try XHR */ }
+
+  // Fall back to XHR — file:// returns status 0 on success
+  try {
+    const blob = await new Promise((res, rej) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'blob';
+      xhr.onload  = () => (xhr.status === 200 || xhr.status === 0) ? res(xhr.response) : rej(xhr.status);
+      xhr.onerror = () => rej(new Error('XHR error'));
+      xhr.send();
+    });
+    if (blob && blob.size > 0) return await blobToDataURL(blob);
+  } catch (e2) { /* XHR also failed */ }
+
+  return null; // both failed — caller will use BLANK
+}
+
 async function convertImagesToDataURLs(statusEl) {
   const imgs = [...document.querySelectorAll('.page img')]
     .filter(img => img.src && !img.src.startsWith('data:'));
 
-  let done = 0;
-  // Process all images in parallel
+  let done = 0, failed = 0;
   await Promise.all(imgs.map(async img => {
-    try {
-      const resp = await fetch(img.src);
-      const blob = await resp.blob();
-      const dataURL = await new Promise((res, rej) => {
-        const fr = new FileReader();
-        fr.onloadend = () => res(fr.result);
-        fr.onerror   = rej;
-        fr.readAsDataURL(blob);
-      });
-      img.src = dataURL;   // replace with data: URL — canvas-safe
-    } catch (e) {
-      console.warn('img convert failed (will skip):', img.alt || img.src);
+    const dataURL = await urlToDataURL(img.src);
+    if (dataURL) {
+      img.src = dataURL;          // data: URL — canvas-safe ✓
+    } else {
+      img.src = BLANK_IMG;        // blank pixel — still canvas-safe, won't crash ✓
+      failed++;
+      console.warn('img convert failed, using blank:', img.alt || img.src);
     }
     done++;
     if (statusEl) statusEl.textContent = `ממיר תמונות ${done}/${imgs.length}...`;
   }));
+
+  if (failed > 0) console.warn(`${failed} image(s) could not be converted — shown as blank in PDF`);
 }
 
 /* ════════════ PDF GENERATION ════════════ */
@@ -563,9 +601,13 @@ async function generatePDF() {
 
     // 2. Convert img srcs → data: URLs (fixes tainted-canvas on file://)
     await convertImagesToDataURLs(status);
-    await new Promise(r => setTimeout(r, 400)); // repaint settle
 
-    // 3. Capture each page
+    // 3. Wait for the newly-set data: URLs to fully decode in the browser
+    status.textContent = 'ממתין לרינדור תמונות...';
+    await waitForImages();
+    await new Promise(r => setTimeout(r, 300)); // extra repaint settle
+
+    // 5. Capture each page
     const pages = [...document.querySelectorAll('.page')];
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
@@ -585,7 +627,7 @@ async function generatePDF() {
       doc.addImage(imgData, 'JPEG', 0, 0, 210, 297);
     }
 
-    // 4. Download
+    // 6. Download
     doc.save('קטלוג_ריהוט_מעלה_יוסף_2026.pdf');
     status.textContent = `✅ PDF נוצר! (${pages.length} עמודים)`;
 
