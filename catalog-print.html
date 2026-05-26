@@ -517,26 +517,62 @@ function waitForImages() {
   })));
 }
 
+/* ════════════════════════════════════════════════════════
+   PRE-CONVERT ALL IMAGES → data: URLs
+
+   Reason: opening a local file (file://) causes "Tainted canvas"
+   — images drawn from file:// block canvas.toDataURL().
+   Converting to data: URLs first prevents canvas tainting.
+════════════════════════════════════════════════════════ */
+async function convertImagesToDataURLs(statusEl) {
+  const imgs = [...document.querySelectorAll('.page img')]
+    .filter(img => img.src && !img.src.startsWith('data:'));
+
+  let done = 0;
+  // Process all images in parallel
+  await Promise.all(imgs.map(async img => {
+    try {
+      const resp = await fetch(img.src);
+      const blob = await resp.blob();
+      const dataURL = await new Promise((res, rej) => {
+        const fr = new FileReader();
+        fr.onloadend = () => res(fr.result);
+        fr.onerror   = rej;
+        fr.readAsDataURL(blob);
+      });
+      img.src = dataURL;   // replace with data: URL — canvas-safe
+    } catch (e) {
+      console.warn('img convert failed (will skip):', img.alt || img.src);
+    }
+    done++;
+    if (statusEl) statusEl.textContent = `ממיר תמונות ${done}/${imgs.length}...`;
+  }));
+}
+
 /* ════════════ PDF GENERATION ════════════ */
 async function generatePDF() {
-  const btn = document.getElementById('pdf-btn');
+  const btn    = document.getElementById('pdf-btn');
   const status = document.getElementById('bar-status');
   btn.disabled = true;
+  btn.textContent = '⏳ מעבד...';
 
   try {
-    // 1. Wait for any remaining images to load
+    // 1. Wait for images to load
     status.textContent = 'ממתין לטעינת תמונות...';
     await waitForImages();
-    await new Promise(r => setTimeout(r, 300)); // extra settle time
 
+    // 2. Convert img srcs → data: URLs (fixes tainted-canvas on file://)
+    await convertImagesToDataURLs(status);
+    await new Promise(r => setTimeout(r, 400)); // repaint settle
+
+    // 3. Capture each page
     const pages = [...document.querySelectorAll('.page')];
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
 
-    // 2. Capture each page
     for (let i = 0; i < pages.length; i++) {
-      status.textContent = `מעבד עמוד ${i + 1} מתוך ${pages.length}...`;
-      await new Promise(r => setTimeout(r, 30)); // let UI breathe
+      status.textContent = `מעבד עמוד ${i + 1} / ${pages.length}...`;
+      await new Promise(r => setTimeout(r, 40));
 
       const canvas = await html2canvas(pages[i], {
         scale: 2,
@@ -549,11 +585,12 @@ async function generatePDF() {
       doc.addImage(imgData, 'JPEG', 0, 0, 210, 297);
     }
 
-    // 3. Save
+    // 4. Download
     doc.save('קטלוג_ריהוט_מעלה_יוסף_2026.pdf');
     status.textContent = `✅ PDF נוצר! (${pages.length} עמודים)`;
+
   } catch (e) {
-    console.error(e);
+    console.error('PDF error:', e);
     status.textContent = '❌ שגיאה: ' + e.message;
   }
 
