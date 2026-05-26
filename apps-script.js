@@ -66,7 +66,8 @@ function doPost(e) {
       cc:       cc,
       subject:  subject,
       body:     body,
-      htmlBody: htmlBody
+      htmlBody: htmlBody,
+      replyTo:  to
     };
 
     // Attach the Excel file if base64 data was provided

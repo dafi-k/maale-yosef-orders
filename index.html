@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>קטלוג ריהוט שדרוג צימרים מעלה יוסף 2026</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/autotable.min.js"></script>
 <style>
 :root {
   --bg: #F5F0E8;
@@ -154,6 +156,19 @@ body {
   transition: background 0.2s;
 }
 .btn-secondary:hover { background: #DDD3C0; }
+.btn-tertiary {
+  background: var(--gold);
+  color: var(--primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-tertiary:hover { background: #C99630; }
 .btn-full { width: 100%; justify-content: center; margin-top: 8px; }
 
 /* === SCREEN 2 – INSTRUCTIONS === */
@@ -1002,10 +1017,15 @@ const PRODUCTS = [
   {key:'M1', id:'M1', sku:'PJ026-FD-2045L', cat:'מלונאי', desc:'כספת 20×37×45 ס"מ',        color:'', price:799, img:'M1.png'},
   {key:'M2', id:'M2', sku:'IL0004',         cat:'מלונאי', desc:'חבילת בונוס מלונאי — כרית נוי, מגש עץ, 3 ואזות, שטיח כניסה, מראה עגולה, 2 תמונות בד, קומקום מלונאי', color:'', price:0, img:'m2.PNG', isGift:true},
   {key:'M3', id:'M3', sku:'IL0004',         cat:'מלונאי', desc:'חבילת בונוס מלונאי — כרית נוי, מגש עץ, 3 ואזות, שטיח כניסה, מראה עגולה, 2 תמונות בד, קומקום מלונאי', color:'', price:0, img:'M3.PNG', isGift:true},
+  {key:'M4', id:'M4', sku:'M07371',         cat:'מלונאי', desc:'פח אשפה שחור נפח 30 ליטר', color:'שחור', price:899, img:'M4.PNG'},
+  {key:'M5', id:'M5', sku:'M07371',         cat:'מלונאי', desc:'פח אשפה נירוסטה נפח 30 ליטר', color:'נירוסטה', price:899, img:'M5.PNG'},
+  // ── שטיחים ──
+  {key:'R2', id:'R2', sku:'IL0009',         cat:'שטיחים', desc:'שטיח עגול קוטר 160 ס"מ', color:'', price:899, img:'R2.PNG'},
+  {key:'R3', id:'R3', sku:'IL0010',         cat:'שטיחים', desc:'שטיח 300×200 ס"מ', color:'', price:1699, img:'R3.PNG'},
 ];
 
 // Category display order
-const CAT_ORDER = ['כורסאות','כיסאות','כיסאות בר','פינת ישיבה','פינת קפה','פינת אוכל','שינה','שולחנות סלון','מזנונים','מלונאי'];
+const CAT_ORDER = ['כורסאות','כיסאות','כיסאות בר','פינת ישיבה','פינת קפה','פינת אוכל','שינה','שולחנות סלון','מזנונים','שטיחים','מלונאי'];
 
 // ════════════════════════════════════════════
 // STATE
@@ -1528,6 +1548,7 @@ function renderSummary() {
   document.getElementById('submit-area').innerHTML = `
     <div class="summary-footer-btns">
       <button class="btn-secondary" onclick="showScreen(3)">← חזור לעריכה</button>
+      <button class="btn-tertiary" onclick="exportPDF()">הורד PDF</button>
       <button class="btn-primary btn-lg" onclick="submitOrder()">שלח הזמנה ←</button>
     </div>`;
 }
@@ -1654,6 +1675,120 @@ async function exportExcel() {
     reader.readAsDataURL(new Blob([buffer]));
   });
   return { base64, filename };
+}
+
+// ════════════════════════════════════════════
+// PDF EXPORT (jsPDF + autotable)
+// ════════════════════════════════════════════
+async function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
+  doc.setProperties({ title: `הזמנה - ${identity.cabin}` });
+
+  // RTL support: set text direction and font
+  doc.setFont('Courier', 'normal');
+  const rtl = true;
+
+  // Header
+  doc.setFontSize(18);
+  doc.setTextColor(107, 78, 42); // primary color
+  doc.text('קטלוג ריהוט שדרוג צימרים', 105, 15, { align: 'center', maxWidth: 180 });
+  doc.setFontSize(12);
+  doc.setTextColor(122, 110, 95); // text-muted
+  doc.text('מעלה יוסף', 105, 22, { align: 'center' });
+
+  // Identity section
+  doc.setFontSize(10);
+  doc.setTextColor(44, 36, 22); // text
+  let y = 30;
+  doc.text(`שם הצימר: ${identity.cabin}`, 15, y);
+  y += 6;
+  doc.text(`איש קשר: ${identity.contact}`, 15, y);
+  y += 6;
+  doc.text(`נייד: ${identity.phone}`, 15, y);
+  y += 6;
+  doc.text(`אי-מייל: ${identity.email}`, 15, y);
+  y += 6;
+  doc.text(`תאריך: ${new Date().toLocaleDateString('he-IL')}`, 15, y);
+  y += 10;
+
+  // Table data
+  const ordered = PRODUCTS.filter(p => getQty(p.key) > 0);
+  const tableData = ordered.map(p => {
+    const qty = getQty(p.key);
+    const variant = getVariant(p.key) || '';
+    const price = p.isGift ? 'מתנה' : (p.price || 0);
+    const subtotal = p.isGift ? 'מתנה' : qty * (p.price || 0);
+    return [
+      p.id,                                    // #
+      p.sku,                                   // מק"ט
+      p.cat,                                   // קטגוריה
+      p.desc.substring(0, 30),                 // תיאור (truncated)
+      variant.substring(0, 20),                // בחירה
+      String(qty),                             // כמות
+      typeof price === 'number' ? `₪${price}` : price,  // מחיר
+      typeof subtotal === 'number' ? `₪${subtotal}` : subtotal  // סה"כ
+    ];
+  });
+
+  doc.autoTable({
+    head: [['#', 'מק"ט', 'קטגוריה', 'תיאור', 'בחירה', 'כמות', 'מחיר', 'סה"כ']],
+    body: tableData,
+    startY: y,
+    margin: 15,
+    theme: 'striped',
+    headStyles: {
+      fillColor: [107, 78, 42],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      halign: 'right',
+      fontSize: 9
+    },
+    bodyStyles: {
+      textColor: [44, 36, 22],
+      halign: 'right',
+      fontSize: 8
+    },
+    alternateRowStyles: { fillColor: [245, 240, 232] },
+    columnStyles: {
+      0: { cellWidth: 8 },
+      1: { cellWidth: 15 },
+      2: { cellWidth: 18 },
+      3: { cellWidth: 35 },
+      4: { cellWidth: 25 },
+      5: { cellWidth: 12 },
+      6: { cellWidth: 18 },
+      7: { cellWidth: 18 }
+    }
+  });
+
+  // Footer
+  y = doc.lastAutoTable.finalY + 10;
+  doc.setFontSize(11);
+  doc.setTextColor(107, 78, 42);
+  doc.setFont('Courier', 'bold');
+
+  const total = getTotal();
+  const balance = total - BUDGET;
+
+  doc.text(`סה"כ הזמנה: ₪${total}`, 15, y);
+  y += 6;
+  doc.text(`תקציב: ₪${BUDGET}`, 15, y);
+  y += 6;
+  if (balance > 0) {
+    doc.setTextColor(192, 57, 43); // danger
+    doc.text(`יתרה לתשלום: ₪${balance}`, 15, y);
+  } else {
+    doc.setTextColor(61, 112, 72); // green
+    doc.text(`יתרה זמינה: ₪${Math.abs(balance)}`, 15, y);
+  }
+
+  // Save
+  const date = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
+  const filename = `הזמנה_${identity.cabin}_${date}.pdf`;
+  doc.save(filename);
+
+  return { filename };
 }
 
 // ════════════════════════════════════════════
