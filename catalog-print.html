@@ -468,8 +468,11 @@ function build() {
       PALETTE.forEach(v => {
         const vc = document.createElement('div');
         vc.className = 'vc';
-        vc.appendChild(makeImg(v.img, v.n));
-        vc.innerHTML += `<div class="vcf"><div class="vcn">${v.n}</div><div class="vci">${v.id}</div></div>`;
+        vc.appendChild(makeImg(v.img, v.n));   // img appended first
+        const vcf = document.createElement('div');
+        vcf.className = 'vcf';
+        vcf.innerHTML = `<div class="vcn">${v.n}</div><div class="vci">${v.id}</div>`;
+        vc.appendChild(vcf);                   // footer appended second — img NOT destroyed
         pgrid.appendChild(vc);
       });
       wrap.appendChild(pg);
@@ -492,8 +495,11 @@ function build() {
       FABRIC.forEach(v => {
         const vc = document.createElement('div');
         vc.className = 'vc';
-        vc.appendChild(makeImg(v.img, v.n));
-        vc.innerHTML += `<div class="vcf"><div class="vcn">${v.n}</div><div class="vci">${v.id}</div></div>`;
+        vc.appendChild(makeImg(v.img, v.n));   // img appended first
+        const vcf = document.createElement('div');
+        vcf.className = 'vcf';
+        vcf.innerHTML = `<div class="vcn">${v.n}</div><div class="vci">${v.id}</div>`;
+        vc.appendChild(vcf);                   // footer appended second — img NOT destroyed
         fgrid.appendChild(vc);
       });
       wrap.appendChild(pg);
@@ -503,11 +509,12 @@ function build() {
 
 /* ════════════ IMAGE LOADING WAIT ════════════ */
 function waitForImages() {
-  const imgs = [...document.querySelectorAll('.page img')];
-  return Promise.all(imgs.map(img => {
-    if (img.complete) return Promise.resolve();
-    return new Promise(res => { img.onload = res; img.onerror = res; });
-  }));
+  const imgs = [...document.querySelectorAll('img')];
+  return Promise.all(imgs.map(img => new Promise(res => {
+    if (img.complete && img.naturalWidth > 0) { res(); return; }
+    img.addEventListener('load',  res, { once: true });
+    img.addEventListener('error', res, { once: true });
+  })));
 }
 
 /* ════════════ PDF GENERATION ════════════ */
@@ -532,16 +539,9 @@ async function generatePDF() {
       await new Promise(r => setTimeout(r, 30)); // let UI breathe
 
       const canvas = await html2canvas(pages[i], {
-        scale: 2,              // 2× for good quality (~190 DPI equivalent)
-        useCORS: true,
-        allowTaint: true,
+        scale: 2,
         backgroundColor: '#ffffff',
         logging: false,
-        // Match the exact rendered size of the page element
-        width:  pages[i].offsetWidth,
-        height: pages[i].offsetHeight,
-        windowWidth:  pages[i].offsetWidth,
-        windowHeight: pages[i].offsetHeight,
       });
 
       const imgData = canvas.toDataURL('image/jpeg', 0.88);
@@ -554,7 +554,7 @@ async function generatePDF() {
     status.textContent = `✅ PDF נוצר! (${pages.length} עמודים)`;
   } catch (e) {
     console.error(e);
-    status.textContent = '❌ שגיאה — נסה שנית';
+    status.textContent = '❌ שגיאה: ' + e.message;
   }
 
   btn.disabled = false;
@@ -564,11 +564,22 @@ async function generatePDF() {
 /* ════════════ INIT ════════════ */
 build();
 
-// Wait for images then enable button
+// Wait for images + libraries, then enable button
 waitForImages().then(() => {
-  document.getElementById('pdf-btn').disabled = false;
-  document.getElementById('bar-status').textContent =
-    `${document.querySelectorAll('.page').length} עמודים מוכנים — לחצי "צור PDF"`;
+  const status = document.getElementById('bar-status');
+  const btn    = document.getElementById('pdf-btn');
+  const pages  = document.querySelectorAll('.page').length;
+
+  if (typeof html2canvas === 'undefined') {
+    status.textContent = '❌ html2canvas לא נטען — יש לפתוח עם חיבור לאינטרנט';
+    return;
+  }
+  if (typeof window.jspdf === 'undefined') {
+    status.textContent = '❌ jsPDF לא נטען — יש לפתוח עם חיבור לאינטרנט';
+    return;
+  }
+  btn.disabled = false;
+  status.textContent = `${pages} עמודים מוכנים ✓ — לחצי "צור PDF"`;
 });
 </script>
 </body>
