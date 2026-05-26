@@ -19,8 +19,9 @@ const { createCanvas, loadImage } = require('../node_modules/canvas');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PIC_DIR   = path.join(__dirname, 'pic');
-const SRC_HTML  = path.join(__dirname, 'catalog-print.html');
-const OUT_HTML  = path.join(__dirname, 'catalog-print-embedded.html');
+// Accept optional CLI args: node embed-images.mjs [input.html] [output.html]
+const SRC_HTML  = path.join(__dirname, process.argv[2] || 'catalog-print.html');
+const OUT_HTML  = path.join(__dirname, process.argv[3] || 'catalog-print-embedded.html');
 
 const MAX_PX    = 900;   // max width or height in pixels
 const QUALITY   = 0.82;  // JPEG quality for compression

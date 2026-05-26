@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>קטלוג ריהוט מעלה יוסף 2026 — עם מחירים</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Arial, 'Noto Sans Hebrew', sans-serif;
+  direction: rtl;
+  background: #C0B09A;
+  color: #2C2416;
+}
+
+/* ══ BAR ══ */
+#bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  background: #4A2E0E; color: #fff;
+  padding: 10px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 2px 12px rgba(0,0,0,.45);
+}
+#bar-left { display: flex; flex-direction: column; gap: 2px; }
+#bar-title { font-size: .95rem; font-weight: 700; }
+#bar-status { font-size: .78rem; opacity: .8; min-height: 1em; }
+#pdf-btn {
+  background: #fff; color: #4A2E0E;
+  border: none; border-radius: 7px;
+  padding: 10px 30px; font-family: inherit;
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: background .15s;
+}
+#pdf-btn:hover:not(:disabled) { background: #f0e8dc; }
+#pdf-btn:disabled { opacity: .55; cursor: wait; }
+
+body { padding-top: 54px; }
+#wrap { padding: 18px 12px 52px; }
+
+/* ══════════════════════════════════════════════
+   PAGE  —  exactly one A4 sheet: 210mm × 297mm
+   The html2canvas will capture this element as-is.
+══════════════════════════════════════════════ */
+.page {
+  background: #fff;
+  width: 210mm;
+  height: 297mm;          /* fixed – prevents short pages */
+  padding: 9mm 10mm 8mm;
+  margin: 16px auto;
+  overflow: hidden;       /* nothing bleeds – no cut-off */
+  position: relative;
+  box-shadow: 0 4px 22px rgba(0,0,0,.2);
+  border-radius: 2px;
+  direction: rtl;
+}
+
+/* ══ PAGE HEADER ══ */
+.ph {
+  height: 12mm;
+  display: flex; align-items: center; gap: 7px;
+  border-bottom: 2.5px solid #4A2E0E;
+  padding-bottom: 4px;
+  margin-bottom: 4mm;
+}
+.ph-cat { font-size: 14pt; font-weight: 800; color: #4A2E0E; }
+.ph-n {
+  background: #4A2E0E; color: #fff;
+  border-radius: 50%; width: 21px; height: 21px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 7.5pt; font-weight: 700;
+}
+.ph-pg { margin-right: auto; font-size: 7.5pt; color: #B0A090; }
+
+/* ══ PAGE FOOTER ══ */
+.pf {
+  position: absolute; bottom: 5mm; left: 10mm; right: 10mm;
+  display: flex; justify-content: space-between;
+  font-size: 6.5pt; color: #C4A880;
+  border-top: .5px solid #EEE8DE; padding-top: 2.5px;
+}
+
+/* ══════════════════════════════════════════════
+   GRID  —  3 columns, fixed row height = 83mm
+
+   Available height:
+     297mm total
+   - 17mm  top+bottom padding (9+8)
+   - 12mm  header (.ph)
+   -  4mm  gap below header (margin-bottom)
+   -  8mm  footer zone
+   = 256mm for grid
+
+   3 rows × 83mm + 2 gaps × 1.5mm = 252mm  ✓
+══════════════════════════════════════════════ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 83mm;   /* NEVER forces empty rows */
+  gap: 1.5mm;
+  max-height: 252mm;
+  overflow: hidden;
+}
+
+/* ══ CARD ══ */
+.card {
+  height: 83mm;
+  border: 1.5px solid #DDD3C0;
+  border-radius: 7px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+/*
+  Image area: 57mm fixed height (reduced 4mm to fit price row).
+*/
+.ci {
+  height: 57mm;          /* explicit mm — no flex:1 */
+  flex-shrink: 0;
+  background: #F5F0E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 3px;
+}
+.ci img {
+  max-width: 100%;
+  max-height: 55mm;      /* slight inset so image never touches edge */
+  width: auto;
+  height: auto;
+  display: block;
+  /* NO loading="lazy" — images must all load immediately */
+}
+
+/* Info area: 26mm fixed height (extra 4mm for price row) */
+.info {
+  height: 26mm;
+  flex-shrink: 0;
+  padding: 2mm 3mm 1.5mm;
+  overflow: hidden;
+  border-top: 1px solid #EEE6D8;
+  background: #fff;
+}
+.bads { display: flex; gap: 3px; flex-wrap: wrap; align-items: center; margin-bottom: 2px; }
+.bid  { background: #4A2E0E; color: #fff; border-radius: 3px; padding: 1px 5px; font-size: 7pt;   font-weight: 700; }
+.bgft { background: #D4A843; color: #fff; border-radius: 3px; padding: 1px 5px; font-size: 6.5pt; font-weight: 700; }
+.bpal { background: #2E6644; color: #fff; border-radius: 3px; padding: 1px 4px; font-size: 6pt;   font-weight: 600; }
+.bfab { background: #5A3E80; color: #fff; border-radius: 3px; padding: 1px 4px; font-size: 6pt;   font-weight: 600; }
+.sku  { display: block; font-size: 6pt; color: #9A8E7F; margin-bottom: 1.5px; }
+.dsc  { font-size: 7.5pt; font-weight: 600; color: #2C2416; line-height: 1.3; }
+.clr  { font-size: 6pt; color: #7A6E5F; margin-top: 1px; }
+
+/* ══ PRICE TAG ══ */
+.prc {
+  margin-top: 2.5px;
+  padding-top: 2px;
+  border-top: 0.5px solid #E8DED0;
+  font-size: 9.5pt;
+  font-weight: 800;
+  color: #4A2E0E;
+  letter-spacing: 0.02em;
+}
+.prc-gift {
+  color: #C48A00;
+  font-size: 8pt;
+}
+
+/* ══ COVER ══ */
+.cover-inner {
+  height: calc(297mm - 17mm);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.c-hero {
+  width: 100%; background: #4A2E0E; color: #fff;
+  border-radius: 12px; padding: 28px 40px 24px;
+  text-align: center; margin-bottom: 18px;
+}
+.c-t { font-size: 22pt; font-weight: 900; line-height: 1.2; margin-bottom: 8px; }
+.c-o { font-size: 10.5pt; opacity: .84; }
+.c-y { display: inline-block; background: rgba(255,255,255,.18); border-radius: 14px; padding: 3px 16px; font-size: 10pt; margin-top: 7px; }
+
+.c-stats { display: flex; gap: 10px; width: 100%; margin-bottom: 16px; }
+.c-s { flex: 1; background: #F9F5EF; border: 1.5px solid #DDD3C0; border-radius: 9px; padding: 13px 8px; text-align: center; }
+.c-sn { font-size: 21pt; font-weight: 900; color: #4A2E0E; line-height: 1; }
+.c-sl { font-size: 7.5pt; color: #7A6E5F; margin-top: 3px; }
+
+.c-cats { width: 100%; background: #F9F5EF; border: 1.5px solid #DDD3C0; border-radius: 9px; padding: 12px 16px; margin-bottom: 16px; }
+.c-ch { font-size: 9pt; font-weight: 700; color: #4A2E0E; margin-bottom: 8px; }
+.c-cl { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { background: #4A2E0E; color: #fff; border-radius: 14px; padding: 3px 11px; font-size: 7.5pt; font-weight: 600; }
+.c-note { font-size: 7pt; color: #9A8E7F; line-height: 1.8; text-align: center; }
+
+/* ══ VARIANT PAGES ══ */
+.v-head { text-align: center; border-bottom: 2.5px solid #4A2E0E; padding-bottom: 6px; margin-bottom: 8px; }
+.v-t { font-size: 14pt; font-weight: 800; color: #4A2E0E; margin-bottom: 3px; }
+.v-s { font-size: 9pt; color: #7A6E5F; }
+.v-n { background: #F9F5EF; border: 1px solid #DDD3C0; border-radius: 7px; padding: 7px 14px; font-size: 8pt; color: #4A2010; text-align: center; margin-bottom: 14px; line-height: 1.65; }
+
+.pgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.fgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.vc { border: 2px solid #DDD3C0; border-radius: 9px; overflow: hidden; background: #fff; text-align: center; }
+.vc img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.fgrid .vc img { aspect-ratio: 4/3; }
+.vcf { padding: 6px 8px 7px; background: #F5F0E8; }
+.vcn { font-size: 9.5pt; font-weight: 700; color: #4A2E0E; }
+.vci { font-size: 7pt; color: #9A8E7F; }
+.fgrid .vcn { font-size: 11pt; }
+.fgrid .vci { font-size: 8pt; }
+
+/* ══ PRINT (fallback) ══ */
+@media print {
+  #bar { display: none; }
+  body { background: #fff; padding: 0; }
+  #wrap { padding: 0; }
+  .page { margin: 0; box-shadow: none; border-radius: 0; page-break-after: always; }
+}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <div id="bar-left">
+    <span id="bar-title">קטלוג ריהוט שדרוג צימרים מעלה יוסף 2026</span>
+    <span id="bar-status">טוען נתונים...</span>
+  </div>
+  <button id="pdf-btn" disabled onclick="generatePDF()">⬇️ צור PDF</button>
+</div>
+
+<div id="wrap"></div>
+
+<script>
+/* ════════════ DATA ════════════ */
+const P = [
+  // כורסאות
+  {id:'A1',  sku:'M06710-C',         cat:'כורסאות',      d:'כורסא מסתובבת',                   c:'אפור',                         img:'A1.JPG',    price:2599},
+  {id:'A2',  sku:'SP0356-D',         cat:'כורסאות',      d:'כורסא',                            c:'אפור',                         img:'A2.JPG',    price:1699},
+  {id:'A3',  sku:'SP0352-VC',        cat:'כורסאות',      d:'כורסא',                            c:'אפרפר',                        img:'A3.JPG',    price:999},
+  {id:'A4',  sku:'SP0401-C',         cat:'כורסאות',      d:'כורסא',                            c:'אפור',                         img:'A4.JPG',    price:2799},
+  {id:'A5',  sku:'SP0401-G',         cat:'כורסאות',      d:'כורסא',                            c:'ירוק',                         img:'A5.JPG',    price:2799},
+  {id:'A6',  sku:'IL150-30406',      cat:'כורסאות',      d:'כורסא',                            c:'מושב שחור / גב עץ',            img:'A6.png',    price:699},
+  {id:'A7',  sku:'M06715-G',         cat:'כורסאות',      d:'כורסא מסתובבת',                   c:'אפור',                         img:'A7.JPG',    price:799},
+  {id:'A8',  sku:'M06715-S',         cat:'כורסאות',      d:'כורסא מסתובבת',                   c:"בז'",                          img:'A8.JPG',    price:799},
+  {id:'A9',  sku:'M06715-R',         cat:'כורסאות',      d:'כורסא מסתובבת',                   c:'ירוק',                         img:'A9.JPG',    price:799},
+  {id:'A10', sku:'M06715-C',         cat:'כורסאות',      d:'כורסא מסתובבת',                   c:'לבן',                          img:'A10.JPG',   price:799},
+  {id:'A11', sku:'SP0409-13',        cat:'כורסאות',      d:'כורסא מסתובבת BOSS',              c:'חמרה',                         img:'A11.JPG',   price:2799},
+  {id:'A12', sku:'SP0409-7',         cat:'כורסאות',      d:'כורסא מסתובבת BOSS',              c:'חולי',                         img:'A12.JPG',   price:2799},
+  // כיסאות
+  {id:'C1',  sku:'SP0317-VMG',       cat:'כיסאות',       d:'כיסא דמוי עור / גב עץ',           c:'אפור',                         img:'C1.jpg',    price:799},
+  {id:'C2',  sku:'SP0317-VML',       cat:'כיסאות',       d:'כיסא דמוי עור / גב עץ',           c:'אפור כהה',                     img:'C2.jpg',    price:799},
+  {id:'C3',  sku:'SP0317-VMS',       cat:'כיסאות',       d:'כיסא דמוי עור / גב עץ',           c:'שחור',                         img:'C3.jpg',    price:799},
+  {id:'C4',  sku:'SP0316-DGF',       cat:'כיסאות',       d:'כיסא בד',                          c:'אפור',                         img:'C4.jpg',    price:699},
+  {id:'C5',  sku:'150-36772-GR',     cat:'כיסאות',       d:'כיסא בד',                          c:'אפור',                         img:'C5.png',    price:699},
+  {id:'C6',  sku:'150-36772-G',      cat:'כיסאות',       d:'כיסא בד',                          c:'ירוק',                         img:'C6.png',    price:699},
+  {id:'C7',  sku:'SP0268-BN',        cat:'כיסאות',       d:'כיסא בד / עץ',                     c:'מושב בד / גב ראטן',            img:'C7.jpg',    price:499},
+  {id:'C8',  sku:'15031604',         cat:'כיסאות',       d:'כיסא דמוי עור',                    c:'אפור בהיר',                    img:'c8.PNG',    price:699},
+  {id:'C9',  sku:'15031606',         cat:'כיסאות',       d:'כיסא דמוי עור',                    c:'שחור',                         img:'c9.PNG',    price:699},
+  {id:'C10', sku:'15031700',         cat:'כיסאות',       d:'כיסא דמוי עור',                    c:'בזי',                          img:'c10.PNG',   price:799},
+  {id:'C11', sku:'15031704',         cat:'כיסאות',       d:'כיסא דמוי עור',                    c:'אפור בהיר',                    img:'c11.PNG',   price:799},
+  {id:'C12', sku:'15031707',         cat:'כיסאות',       d:'כיסא דמוי עור',                    c:'קמל',                          img:'c12.PNG',   price:799},
+  {id:'C13', sku:'SP0366-BL',        cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'שחור',                         img:'C13.jpg',   price:399},
+  {id:'C14', sku:'SP0377-T',         cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'סגול / ירוק / לבן',            img:'C14.jpg',   price:399},
+  {id:'C15', sku:'SP0360',           cat:'כיסאות',       d:'כיסא פלסטיק',                     c:"בז'",                          img:'C15.jpg',   price:299},
+  {id:'C16', sku:'SP0366-G',         cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'ירוק',                         img:'C16.jpg',   price:399},
+  {id:'C17', sku:'SP0369-NO104',     cat:'כיסאות',       d:'כיסא בד',                          c:'לבן',                          img:'C17.jpg',   price:359},
+  {id:'C18', sku:'SP0370-BL',        cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'שחור',                         img:'C18.jpg',   price:399},
+  {id:'C19', sku:'SP0370-O',         cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'חמרה',                         img:'C19.jpg',   price:399},
+  {id:'C20', sku:'SP0373-O',         cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'חמרה',                         img:'C20.jpg',   price:399},
+  {id:'C21', sku:'SP0373-IV',        cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'לבן',                          img:'C21.jpg',   price:399},
+  {id:'C22', sku:'SP0262-Y03',       cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'צהוב',                         img:'C22.png',   price:299},
+  {id:'C23', sku:'SP0383-WG',        cat:'כיסאות',       d:'כיסא פלסטיק',                     c:"ב'ג",                          img:'C23.jpg',   price:399},
+  {id:'C24', sku:'SP0387-G',         cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'ירוק',                         img:'C24.jpg',   price:399},
+  {id:'C25', sku:'SP0387-B',         cat:'כיסאות',       d:'כיסא פלסטיק',                     c:'ורוד',                         img:'C25.jpg',   price:399},
+  // כיסאות בר
+  {id:'B1',  sku:'SP0305-GR12',      cat:'כיסאות בר',    d:'כיסא בר פלסטיק',                  c:'אפור',                         img:'B1.jpg',    price:399},
+  {id:'B2',  sku:'SP0358-Y03',       cat:'כיסאות בר',    d:'כיסא בר פלסטיק',                  c:'צהוב',                         img:'B2.jpg',    price:299},
+  {id:'B3',  sku:'SP0314-GR01',      cat:'כיסאות בר',    d:'כיסא בר פלסטיק',                  c:'לבן',                          img:'B3.jpg',    price:299},
+  {id:'B4',  sku:'SP0315-DGF',       cat:'כיסאות בר',    d:'כיסא בר בד',                      c:'אפור',                         img:'B4.jpg',    price:599},
+  {id:'B5',  sku:'15131300',         cat:'כיסאות בר',    d:'כיסא בר דמוי עור',                c:'קמל',                          img:'b5.jpg',    price:699},
+  {id:'B6',  sku:'15131304',         cat:'כיסאות בר',    d:'כיסא בר דמוי עור',                c:'אפור',                         img:'B6.PNG',    price:699},
+  // פינת ישיבה
+  {id:'S1',  sku:'SP0411-KF2217-13', cat:'פינת ישיבה',   d:'סלון דו מושבי בד',                c:'חמרה',                         img:'S1.JPG',    price:3599},
+  {id:'S2',  sku:'SP0411-KF2217-2',  cat:'פינת ישיבה',   d:'סלון דו מושבי בד',                c:"בז'",                          img:'S2.JPG',    price:3599},
+  {id:'S3',  sku:'SP0411-KF2217-6',  cat:'פינת ישיבה',   d:'סלון דו מושבי בד',                c:'אפור',                         img:'S3.JPG',    price:3599},
+  // פינת קפה
+  {id:'L1',  sku:'15551313',         cat:'פינת קפה',     d:'שולחן ישיבה + בחירת פלטה',        c:'עגולה / מרובעת 70×70 ס"מ',     img:'L1.png',    pal:1, price:1099},
+  {id:'L2',  sku:'15550510',         cat:'פינת קפה',     d:'שולחן ישיבה + בחירת פלטה',        c:'עגולה / מרובעת 70×70 ס"מ',     img:'L2.png',    pal:1, price:1099},
+  {id:'L3',  sku:'M06662-BK',        cat:'פינת קפה',     d:'שולחן ישיבה + בחירת פלטה',        c:'עגולה / מרובעת 70×70 ס"מ',     img:'L3+P.jpg',  pal:1, price:1299},
+  {id:'L4',  sku:'M06660-W',         cat:'פינת קפה',     d:'שולחן ישיבה + בחירת פלטה',        c:'עגולה / מרובעת 70×70 ס"מ',     img:'L4+P.jpg',  pal:1, price:1299},
+  {id:'L5',  sku:'M06670-BK',        cat:'פינת קפה',     d:'שולחן ישיבה + בחירת פלטה',        c:'עגולה / מרובעת 70×70 ס"מ',     img:'L5+P.jpg',  pal:1, price:1099},
+  {id:'L6',  sku:'M06668',           cat:'פינת קפה',     d:'שולחן ישיבה + בחירת פלטה',        c:'עגולה / מרובעת 70×70 ס"מ',     img:'L6+P.jpg',  pal:1, price:1099},
+  {id:'L7',  sku:'M06665A',          cat:'פינת קפה',     d:'שולחן ישיבה + בחירת פלטה',        c:'עגולה / מרובעת 70×70 ס"מ',     img:'L7+P.jpg',  pal:1, price:1299},
+  // פינת אוכל
+  {id:'L8',  sku:'רגל 4 פינים',     cat:'פינת אוכל',    d:'שולחן אוכל + בחירת פלטה',         c:'פלטה 120×70 ס"מ',              img:'L8+P.jpeg', pal:1, price:1599},
+  // שינה
+  {id:'H1',  sku:'SP0408-KF23339-7', cat:'שינה',         d:'הדום נפתח למיטה',                  c:"בז'",                          img:'H1.PNG',    price:2299},
+  {id:'S1b', sku:'IL0001',           cat:'שינה',         d:'בסיס מיטה מחולק 160×190 ס"מ',      c:'יש לבחור דגם בד',              img:'s1.PNG',    fab:1, price:2400},
+  {id:'S2b', sku:'IL0002',           cat:'שינה',         d:'גב מיטה סטנדרט 110 ס"מ',           c:'יש לבחור דגם בד',              img:'S2.png',    fab:1, price:1500},
+  {id:'S3b', sku:'IL0003',           cat:'שינה',         d:'מזרן מלונאי 160 ס"מ',              c:'',                             img:'S3.png',    price:2900},
+  // שולחנות סלון
+  {id:'T1',  sku:'M07303',           cat:'שולחנות סלון', d:'סט שולחנות אלומניום',              c:'',                             img:'T1.jpg',    price:1599},
+  {id:'T2',  sku:'M07306',           cat:'שולחנות סלון', d:'סט שולחנות אלומניום',              c:'',                             img:'T2.png',    price:1599},
+  {id:'T3',  sku:'IL0005',           cat:'שולחנות סלון', d:'שולחן קפסולה — פורמיקה עץ',        c:'',                             img:'T3.PNG',    price:1299},
+  {id:'T4',  sku:'VILMERS',          cat:'שולחנות סלון', d:'שולחן זכוכית — רגל ברזל',          c:'',                             img:'T4.png',    price:1999},
+  // מזנונים
+  {id:'P1',  sku:'IL0006',           cat:'מזנונים',      d:'מזנון פורמיקה 140 ס"מ',             c:'',                             img:'p1.PNG',    price:499},
+  {id:'P2',  sku:'IL0007',           cat:'מזנונים',      d:'מזנון ראטן 200 ס"מ',                c:'',                             img:'P2.png',    price:1599},
+  // שטיחים
+  {id:'R2',  sku:'IL0009',           cat:'שטיחים',       d:'שטיח עגול קוטר 160 ס"מ',            c:'',                             img:'R2.PNG',    price:899},
+  {id:'R3',  sku:'IL0010',           cat:'שטיחים',       d:'שטיח 300×200 ס"מ',                  c:'',                             img:'R3.PNG',    price:1699},
+  // מלונאי
+  {id:'M1',  sku:'PJ026-FD-2045L',   cat:'מלונאי',       d:'כספת 20×37×45 ס"מ',                c:'שחור',                         img:'M1.png',    price:799},
+  {id:'M2',  sku:'IL0004',           cat:'מלונאי',       d:'חבילת בונוס מלונאי',               c:'כרית, מגש, ואזות, שטיח, מראה, תמונות, קומקום', img:'m2.PNG', gift:1},
+  {id:'M3',  sku:'IL0004',           cat:'מלונאי',       d:'חבילת בונוס מלונאי',               c:'כרית, מגש, ואזות, שטיח, מראה, תמונות, קומקום', img:'M3.PNG', gift:1},
+  {id:'M4',  sku:'M07371',           cat:'מלונאי',       d:'פח אשפה שחור 30 ליטר',              c:'שחור',                         img:'M4.PNG',    price:899},
+  {id:'M5',  sku:'M07371',           cat:'מלונאי',       d:'פח אשפה נירוסטה 30 ליטר',           c:'נירוסטה',                      img:'M5.PNG',    price:899},
+];
+
+const PALETTE = [
+  {id:'P1', n:'מריאנה',  img:'P1_MARIANA .jpg'},
+  {id:'P2', n:'נקסוס',   img:'P2_NEXUS.jpg'},
+  {id:'P3', n:'פיניש',   img:'P3_FINISH.jpg'},
+  {id:'P4', n:'לבן',     img:'P4_WHITE.jpg'},
+  {id:'P5', n:'שחור',    img:'P5_BLACK.jpg'},
+  {id:'P6', n:'אנטיק',   img:'P6_ANTIC.jpg'},
+  {id:'P7', n:'ולוריה',  img:'P7_VELORIA.jpeg'},
+];
+const FABRIC = [
+  {id:'James', n:"ג'יימס", img:'bd_James-90052.jpg'},
+  {id:'Henry', n:'הנרי',   img:'bd_Henry-40003.jpg'},
+  {id:'Leo',   n:'ליאו',   img:'Bd_LEO-50004.jpg'},
+  {id:'Kim',   n:'קים',    img:'bd_kim-20015.jpg'},
+];
+const CATS = ['כורסאות','כיסאות','כיסאות בר','פינת ישיבה',
+              'פינת קפה','פינת אוכל','שינה',
+              'שולחנות סלון','מזנונים','שטיחים','מלונאי'];
+
+/* ════════════ HELPERS ════════════ */
+function ip(f) { return 'pic/' + f.replace(/ /g, '%20'); }
+function chunk(a, n) {
+  const r = [];
+  for (let i = 0; i < a.length; i += n) r.push(a.slice(i, i + n));
+  return r;
+}
+// Create a real img element with onerror fallback (more reliable than innerHTML)
+function makeImg(src, alt, cls) {
+  const img = document.createElement('img');
+  img.src = ip(src);
+  img.alt = alt;
+  if (cls) img.className = cls;
+  // NO loading="lazy" — load everything immediately
+  img.onerror = function() {
+    this.style.opacity = '0.3';
+    this.onerror = null;
+  };
+  return img;
+}
+function pf(cat) {
+  return `<div class="pf"><span>קטלוג ריהוט שדרוג צימרים מעלה יוסף 2026</span><span>${cat}</span></div>`;
+}
+
+/* ════════════ CARD ════════════ */
+function makeCard(p) {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  // Image container
+  const ci = document.createElement('div');
+  ci.className = 'ci';
+  ci.appendChild(makeImg(p.img, p.d));
+  card.appendChild(ci);
+
+  // Info
+  const badges = [
+    `<span class="bid">${p.id}</span>`,
+    p.gift ? '<span class="bgft">🎁 מתנה</span>' : '',
+    p.pal  ? '<span class="bpal">🎨 פלטה</span>' : '',
+    p.fab  ? '<span class="bfab">🪡 בד</span>'   : '',
+  ].join('');
+
+  // Price line
+  let priceHTML = '';
+  if (p.gift) {
+    priceHTML = '<div class="prc prc-gift">🎁 מתנה</div>';
+  } else if (p.price) {
+    priceHTML = `<div class="prc">₪${p.price.toLocaleString('he-IL')}</div>`;
+  }
+
+  const info = document.createElement('div');
+  info.className = 'info';
+  info.innerHTML = `
+    <div class="bads">${badges}</div>
+    <span class="sku">${p.sku}</span>
+    <div class="dsc">${p.d}</div>
+    ${p.c ? `<div class="clr">${p.c}</div>` : ''}
+    ${priceHTML}`;
+  card.appendChild(info);
+
+  return card;
+}
+
+/* ════════════ PAGE BUILDER ════════════ */
+function makePage(innerHTML) {
+  const pg = document.createElement('div');
+  pg.className = 'page';
+  pg.innerHTML = innerHTML;
+  return pg;
+}
+
+/* ════════════ BUILD CATALOG ════════════ */
+function build() {
+  const wrap = document.getElementById('wrap');
+  const counts = {};
+  const active = CATS.filter(c => { counts[c] = P.filter(p => p.cat === c).length; return counts[c] > 0; });
+
+  /* Cover */
+  wrap.appendChild(makePage(`
+    <div class="cover-inner">
+      <div class="c-hero">
+        <div class="c-t">קטלוג ריהוט<br>שדרוג צימרים מעלה יוסף</div>
+        <div class="c-o">מועצה אזורית מעלה יוסף — גליל מערבי</div>
+        <span class="c-y">2026</span>
+      </div>
+      <div class="c-stats">
+        <div class="c-s"><div class="c-sn">${P.length}</div><div class="c-sl">פריטים</div></div>
+        <div class="c-s"><div class="c-sn">${active.length}</div><div class="c-sl">קטגוריות</div></div>
+        <div class="c-s"><div class="c-sn">7</div><div class="c-sl">אפשרויות פלטה</div></div>
+        <div class="c-s"><div class="c-sn">4</div><div class="c-sl">דגמי בד</div></div>
+      </div>
+      <div class="c-cats">
+        <div class="c-ch">קטגוריות הקטלוג:</div>
+        <div class="c-cl">${active.map(c => `<span class="chip">${c} (${counts[c]})</span>`).join('')}</div>
+      </div>
+      <div class="c-note">
+        ★ שולחנות L1–L8: יש לבחור צורת פלטה (עגולה/מרובעת) + צבע פלטה — ראו עמוד פלטות<br>
+        ★ S1 ו-S2 בקטגוריית שינה: יש לבחור דגם בד — ראו עמוד בדים
+      </div>
+    </div>
+  `));
+
+  let paletteDone = false;
+
+  active.forEach(cat => {
+    const items = P.filter(p => p.cat === cat);
+    const pages = chunk(items, 9);
+
+    pages.forEach((slice, pi) => {
+      const pg = document.createElement('div');
+      pg.className = 'page';
+
+      // Header
+      const pager = pages.length > 1 ? `<span class="ph-pg">${pi+1} / ${pages.length}</span>` : '';
+      pg.innerHTML = `
+        <div class="ph">
+          <span class="ph-cat">${cat}</span>
+          <span class="ph-n">${items.length}</span>
+          ${pager}
+        </div>
+        ${pf(cat)}`;
+
+      // Grid
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      slice.forEach(p => grid.appendChild(makeCard(p)));
+      // Insert grid before footer
+      pg.insertBefore(grid, pg.querySelector('.pf'));
+      wrap.appendChild(pg);
+    });
+
+    /* Palette page after פינת אוכל */
+    if (cat === 'פינת אוכל' && !paletteDone) {
+      paletteDone = true;
+      const pg = makePage(`
+        <div class="v-head">
+          <div class="v-t">🎨 בחירת פלטה לשולחנות</div>
+          <div class="v-s">7 אפשרויות צבע — שולחנות פינת קפה L1–L7 ופינת אוכל L8</div>
+        </div>
+        <div class="v-n">
+          לכל שולחן יש לבחור: <strong>צורת פלטה</strong> (עגולה — קוטר 70 ס"מ | מרובעת — 70×70 ס"מ)<br>
+          ו<strong>צבע פלטה</strong> מבין 7 האפשרויות הבאות
+        </div>
+        <div class="pgrid" id="pgrid"></div>
+        ${pf('אפשרויות פלטה לשולחנות')}
+      `);
+      const pgrid = pg.querySelector('#pgrid');
+      PALETTE.forEach(v => {
+        const vc = document.createElement('div');
+        vc.className = 'vc';
+        vc.appendChild(makeImg(v.img, v.n));   // img appended first
+        const vcf = document.createElement('div');
+        vcf.className = 'vcf';
+        vcf.innerHTML = `<div class="vcn">${v.n}</div><div class="vci">${v.id}</div>`;
+        vc.appendChild(vcf);                   // footer appended second — img NOT destroyed
+        pgrid.appendChild(vc);
+      });
+      wrap.appendChild(pg);
+    }
+
+    /* Fabric page after שינה */
+    if (cat === 'שינה') {
+      const pg = makePage(`
+        <div class="v-head">
+          <div class="v-t">🪡 בחירת בד למוצרי שינה</div>
+          <div class="v-s">4 דגמי בד — לבסיס מיטה (S1) ולגב מיטה (S2)</div>
+        </div>
+        <div class="v-n">
+          בחרו דגם בד אחד עבור בסיס המיטה המחולק 160×190 ס"מ (S1) וגב המיטה 110 ס"מ (S2)
+        </div>
+        <div class="fgrid" id="fgrid"></div>
+        ${pf('דגמי בד למוצרי שינה')}
+      `);
+      const fgrid = pg.querySelector('#fgrid');
+      FABRIC.forEach(v => {
+        const vc = document.createElement('div');
+        vc.className = 'vc';
+        vc.appendChild(makeImg(v.img, v.n));   // img appended first
+        const vcf = document.createElement('div');
+        vcf.className = 'vcf';
+        vcf.innerHTML = `<div class="vcn">${v.n}</div><div class="vci">${v.id}</div>`;
+        vc.appendChild(vcf);                   // footer appended second — img NOT destroyed
+        fgrid.appendChild(vc);
+      });
+      wrap.appendChild(pg);
+    }
+  });
+}
+
+/* ════════════ IMAGE LOADING WAIT ════════════ */
+function waitForImages() {
+  const imgs = [...document.querySelectorAll('img')];
+  return Promise.all(imgs.map(img => new Promise(res => {
+    if (img.complete && img.naturalWidth > 0) { res(); return; }
+    img.addEventListener('load',  res, { once: true });
+    img.addEventListener('error', res, { once: true });
+  })));
+}
+
+/* ════════════════════════════════════════════════════════
+   PRE-CONVERT ALL IMAGES → data: URLs
+
+   Reason: opening a local file (file://) causes "Tainted canvas"
+   — images drawn from file:// block canvas.toDataURL().
+   Converting to data: URLs first prevents canvas tainting.
+
+   Strategy:
+   1. Try fetch() — works in most Chrome versions for file://
+   2. Fall back to XHR (status=0 is OK for file://)
+   3. If both fail → use BLANK pixel (prevents taint, no crash)
+════════════════════════════════════════════════════════ */
+
+// 1×1 transparent GIF — safe data: URL that never taints canvas
+const BLANK_IMG = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+function blobToDataURL(blob) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onloadend = () => res(fr.result);
+    fr.onerror   = rej;
+    fr.readAsDataURL(blob);
+  });
+}
+
+async function urlToDataURL(url) {
+  // Try fetch first
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    if (blob.size > 0) return await blobToDataURL(blob);
+  } catch (e1) { /* fetch failed, try XHR */ }
+
+  // Fall back to XHR — file:// returns status 0 on success
+  try {
+    const blob = await new Promise((res, rej) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'blob';
+      xhr.onload  = () => (xhr.status === 200 || xhr.status === 0) ? res(xhr.response) : rej(xhr.status);
+      xhr.onerror = () => rej(new Error('XHR error'));
+      xhr.send();
+    });
+    if (blob && blob.size > 0) return await blobToDataURL(blob);
+  } catch (e2) { /* XHR also failed */ }
+
+  return null; // both failed — caller will use BLANK
+}
+
+async function convertImagesToDataURLs(statusEl) {
+  const imgs = [...document.querySelectorAll('.page img')]
+    .filter(img => img.src && !img.src.startsWith('data:'));
+
+  let done = 0, failed = 0;
+  await Promise.all(imgs.map(async img => {
+    const dataURL = await urlToDataURL(img.src);
+    if (dataURL) {
+      img.src = dataURL;          // data: URL — canvas-safe ✓
+    } else {
+      img.src = BLANK_IMG;        // blank pixel — still canvas-safe, won't crash ✓
+      failed++;
+      console.warn('img convert failed, using blank:', img.alt || img.src);
+    }
+    done++;
+    if (statusEl) statusEl.textContent = `ממיר תמונות ${done}/${imgs.length}...`;
+  }));
+
+  if (failed > 0) console.warn(`${failed} image(s) could not be converted — shown as blank in PDF`);
+}
+
+/* ════════════ PDF GENERATION ════════════ */
+async function generatePDF() {
+  const btn    = document.getElementById('pdf-btn');
+  const status = document.getElementById('bar-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ מעבד...';
+
+  try {
+    // 1. Wait for images to load
+    status.textContent = 'ממתין לטעינת תמונות...';
+    await waitForImages();
+
+    // 2. Convert img srcs → data: URLs (fixes tainted-canvas on file://)
+    await convertImagesToDataURLs(status);
+
+    // 3. Wait for the newly-set data: URLs to fully decode in the browser
+    status.textContent = 'ממתין לרינדור תמונות...';
+    await waitForImages();
+    await new Promise(r => setTimeout(r, 300)); // extra repaint settle
+
+    // 5. Capture each page
+    const pages = [...document.querySelectorAll('.page')];
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+
+    for (let i = 0; i < pages.length; i++) {
+      status.textContent = `מעבד עמוד ${i + 1} / ${pages.length}...`;
+      await new Promise(r => setTimeout(r, 40));
+
+      const canvas = await html2canvas(pages[i], {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.88);
+      if (i > 0) doc.addPage();
+      doc.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+    }
+
+    // 6. Download
+    doc.save('קטלוג_ריהוט_מעלה_יוסף_2026.pdf');
+    status.textContent = `✅ PDF נוצר! (${pages.length} עמודים)`;
+
+  } catch (e) {
+    console.error('PDF error:', e);
+    status.textContent = '❌ שגיאה: ' + e.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⬇️ צור PDF';
+}
+
+/* ════════════ INIT ════════════ */
+build();
+
+// Wait for images + libraries, then enable button
+waitForImages().then(() => {
+  const status = document.getElementById('bar-status');
+  const btn    = document.getElementById('pdf-btn');
+  const pages  = document.querySelectorAll('.page').length;
+
+  if (typeof html2canvas === 'undefined') {
+    status.textContent = '❌ html2canvas לא נטען — יש לפתוח עם חיבור לאינטרנט';
+    return;
+  }
+  if (typeof window.jspdf === 'undefined') {
+    status.textContent = '❌ jsPDF לא נטען — יש לפתוח עם חיבור לאינטרנט';
+    return;
+  }
+  btn.disabled = false;
+  status.textContent = `${pages} עמודים מוכנים ✓ — לחצי "צור PDF"`;
+});
+</script>
+</body>
+</html>
